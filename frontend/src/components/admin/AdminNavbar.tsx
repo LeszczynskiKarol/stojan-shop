@@ -45,6 +45,11 @@ export function AdminNavbar() {
       label: "Producenci",
       active: pathname.startsWith("/admin/manufacturers"),
     },
+    {
+      href: "/admin/price-manager",
+      label: "Masowa edycja cen",
+      active: pathname.startsWith("/admin/price-manager"),
+    },
   ];
 
   const isAnyShopRouteActive = shopRoutes.some((route) => route.active);

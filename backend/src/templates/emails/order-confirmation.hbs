@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <style>
+      @import
+      url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+      body { font-family: "Inter", sans-serif; line-height: 1.6; color: #1f2937;
+      margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto;
+      padding: 20px; } .logo { font-family: "Avenir Black", "Inter", sans-serif;
+      font-size: 30px; font-weight: 900; color: #111827; text-align: center; }
+      .logo1 { font-family: "Avenir Black", "Inter", sans-serif; font-size:
+      20px; font-weight: 900; color: #111827; text-align: center; } .header {
+      text-align: center; margin-bottom: 40px; } .order-info { background-color:
+      #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+      .order-items { width: 100%; border-collapse: collapse; margin-bottom:
+      20px; } .order-items th, .order-items td { padding: 12px; text-align:
+      left; border-bottom: 1px solid #e5e7eb; } .total { text-align: right;
+      font-weight: 600; } .shipping-info { margin-top: 30px; } .button {
+      display: inline-block; padding: 12px 24px; background-color: #f3bc00;
+      color: white; text-decoration: none; border-radius: 6px; font-weight: 500;
+      margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='logo'>STOJAN</div>
+      <div class='logo1'>silniki elektryczne</div>
+      <div class='header'>
+        <h1>Dziękujemy za zamówienie!</h1>
+        <p>Twoje zamówienie {{order.orderNumber}} zostało potwierdzone.</p>
+      </div>
+      <div class='order-info'>
+        <table class='order-items'>
+          <thead>
+            <tr> <th>Produkt</th> <th>Ilość</th> <th>Cena</th> </tr>
+          </thead>
+          <tbody>
+            {{#each order.items}}
+              <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.quantity}} szt.</td>
+                <td>{{format_price this.price}} zł</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <div class='total'>
+          <p>Produkty: {{format_price order.subtotal}} zł</p>
+          <p>Dostawa: {{format_price order.shippingCost}} zł</p>
+          <p>Razem: <strong>{{format_price order.total}} zł</strong></p>
+        </div>
+      </div>
+      <div class='shipping-info'>
+        <h2>Adres dostawy</h2>
+        <p>
+          {{order.shipping.firstName}}
+          {{order.shipping.lastName}}<br />
+          {{order.shipping.street}}<br />
+          {{order.shipping.postalCode}}
+          {{order.shipping.city}}
+        </p>
+        <h2>Metoda płatności</h2>
+        <p>{{#if (eq order.paymentMethod 'cod')}}Płatność za pobraniem{{else}}Płatność
+            online{{/if}}</p>
+      </div>
+      <tr>
+        <td style='padding: 20px;'>
+          <p style='margin-bottom: 10px;'><strong>Szczegóły dostawy:</strong></p>
+          <p>Data wysyłki: {{shippingDateFormatted}}</p>
+          <p>Przewidywana dostawa: {{deliveryInfo}}</p>
+        </td>
+      </tr>
+      <p>Kolejną wiadomość prześlemy po przekazaniu zamówienia do wysyłki.</p>
+      <p>Jeśli masz pytania, odpowiedz na tę wiadomość lub zadzwoń pod numer 500
+        385 112.</p>
+    </div>
+  </body>
+</html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <style>
+      @import
+      url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+      body { font-family: "Inter", sans-serif; line-height: 1.6; color: #1f2937;
+      margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto;
+      padding: 20px; } .logo { font-family: "Avenir Black", "Inter", sans-serif;
+      font-size: 30px; font-weight: 900; color: #111827; text-align: center; }
+      .logo1 { font-family: "Avenir Black", "Inter", sans-serif; font-size:
+      20px; font-weight: 900; color: #111827; text-align: center; } .header {
+      text-align: center; margin-bottom: 40px; } .order-info { background-color:
+      #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+      .order-items { width: 100%; border-collapse: collapse; margin-bottom:
+      20px; } .order-items th, .order-items td { padding: 12px; text-align:
+      left; border-bottom: 1px solid #e5e7eb; } .total { text-align: right;
+      font-weight: 600; } .shipping-info { margin-top: 30px; } .button {
+      display: inline-block; padding: 12px 24px; background-color: #f3bc00;
+      color: white; text-decoration: none; border-radius: 6px; font-weight: 500;
+      margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='logo'>STOJAN</div>
+      <div class='logo1'>silniki elektryczne</div>
+      <div class='header'>
+        <h1>Właśnie przekazaliśmy Twoje zamówienie do wysyłki!</h1>
+        <p>Zamówienie
+          {{order.orderNumber}}
+          zostało
+          {{#if (eq order.status 'shipped')}}
+            przekazane do wysyłki.
+            {{#if (lte order.totalWeight 36.5)}}
+              Przesyłka zostanie dostarczona
+              {{formatDate dates.deliveryDateStart 'd MMMM'}}.
+            {{else}}
+              Przesyłka zostanie dostarczona między
+              {{formatDate dates.deliveryDateStart 'd MMMM'}}
+              a
+              {{formatDate dates.deliveryDateEnd 'd MMMM'}}.
+            {{/if}}
+          {{else if (eq order.status 'delivered')}} dostarczone {{else}}
+            {{order.status}}
+          {{/if}}
+        </p>
+      </div>
+      <div class='order-info'>
+        <table class='order-items'>
+          <thead>
+            <tr> <th>Produkt</th> <th>Ilość</th> <th>Cena</th> </tr>
+          </thead>
+          <tbody>
+            {{#each order.items}}
+              <tr>
+                <td>{{this.name}}</td>
+                <td>{{this.quantity}} szt.</td>
+                <td>{{format_price this.price}}</td>
+              </tr>
+            {{/each}}
+            <tr>
+              <td colspan='2' style='text-align: right;'>Koszt dostawy:</td>
+              <td>{{format_price order.shippingCost}}</td>
+            </tr>
+            <tr>
+              <td colspan='2' style='text-align: right;'><strong>Razem do
+                  zapłaty:</strong></td>
+              <td><strong>{{format_price order.total}}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Dziękujemy za zaufanie i polecamy się na przyszłość przy kupnie
+          napędu elektrycznego.</p>
+      </div>
+    </div>
+  </body>
+</html>

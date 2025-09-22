@@ -1,0 +1,133 @@
+/* frontend/src/app/globals.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --primary: 45 100% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 47%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --border: 220 13% 91%;
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 93%;
+    --primary: 45 100% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 47%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 93%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 220 9% 65%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 93%;
+    --border: 0 0% 15%;
+  }
+}
+
+:root {
+  --cart-widget-height: 0px;
+  --header-height: 64px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+.slider-tooltip {
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.slider-container:hover .slider-tooltip {
+  opacity: 1;
+}
+
+/* CartWidget responsywne marginesy */
+:root {
+  --cart-widget-height: 0px;
+  --header-height: 64px;
+}
+
+/* Gdy CartWidget jest widoczny */
+body.cart-widget-visible {
+  --cart-widget-height: 52px;
+}
+
+main {
+  transition: padding-top 0.3s ease;
+}
+
+/* Gdy header jest zwinięty */
+header[data-collapsed="true"] {
+  --header-height: 56px;
+}
+
+/* Dopasowanie pozycji CartWidget */
+.cart-widget-container {
+  position: relative;
+  z-index: 35;
+}
+
+/* Dodatkowe style dla lepszej animacji */
+.cart-widget-visible main {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-52px);
+    opacity: 0.95;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsywność dla mniejszych ekranów */
+@media (max-width: 640px) {
+  :root {
+    --header-height: 56px;
+  }
+
+  body.cart-widget-visible {
+    --cart-widget-height: 48px;
+  }
+}
+
+/* Zapewnij że CartWidget jest zawsze nad innymi elementami */
+.fixed.z-40 {
+  z-index: 40 !important;
+}
+
+/* Płynne przejścia dla CartWidget */
+.cart-widget-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-image-preview {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none;
+}

@@ -1,0 +1,62 @@
+<!-- backend/src/templates/emails/order-confirmation-staff.hbs -->
+<div class='container'>
+  <div class='logo'>STOJAN</div>
+  <div class='logo1'>silniki elektryczne</div>
+
+  <div class='header'>
+    <h1>Nowe zamówienie od klienta!</h1>
+    <p>Zamówienie #{{order.orderNumber}}</p>
+  </div>
+
+  <div class='order-info'>
+    <table class='order-items'>
+      <thead>
+        <tr>
+          <th>Produkt</th>
+          <th>Ilość</th>
+          <th>Cena</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each order.items}}
+          <tr>
+            <td>{{this.name}}</td>
+            <td>{{this.quantity}} szt.</td>
+            <td>{{format_price this.price}} zł</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <div class='total'>
+      <p>Produkty: {{format_price order.subtotal}} zł</p>
+      <p>Dostawa: {{format_price order.shippingCost}} zł</p>
+      <p>Razem: <strong>{{format_price order.total}} zł</strong></p>
+    </div>
+  </div>
+
+  <div class='shipping-info'>
+    <h2>Adres dostawy</h2>
+    <p>
+      {{order.shipping.firstName}}
+      {{order.shipping.lastName}}<br />
+      {{order.shipping.street}}<br />
+      {{order.shipping.postalCode}}
+      {{order.shipping.city}}
+    </p>
+    <h2>Metoda płatności</h2>
+    <p>{{#if (eq order.paymentMethod 'cod')}}
+        Płatność za pobraniem
+        <br />
+        <strong>Kwota do zapłaty przy odbiorze:
+          {{format_price order.total}}
+          zł</strong>
+      {{else}}
+        Płatność online
+      {{/if}}</p>
+  </div>
+
+  <div style='text-align: center; margin-top: 40px;'>
+    <a href='{{orderUrl}}' class='button'>Przejdź do szczegółów zamówienia</a>
+  </div>
+</div>

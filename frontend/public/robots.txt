@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /*?powerMin=
+Disallow: /*?powerMax=
+Disallow: /*?rpmMin=
+Disallow: /*?rpmMax=
+Disallow: /*?shaftMin=
+Disallow: /*?shaftMax=
+Disallow: /*?manufacturer=
+Disallow: /*?condition=
+Allow: /*?page=

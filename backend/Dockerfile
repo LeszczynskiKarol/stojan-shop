@@ -1,0 +1,10 @@
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN mkdir -p /app/templates/emails
+COPY src/templates/emails/*.hbs /app/templates/emails/
+RUN npm run build
+EXPOSE 4000
+CMD ["npm", "start"]

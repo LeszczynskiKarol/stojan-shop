@@ -1,0 +1,21 @@
+<div class='container'>
+  <div class='logo'>STOJAN</div>
+  <div class='logo1'>silniki elektryczne</div>
+
+  <div class='header'>
+    <h1>Błąd synchronizacji produktu z Allegro</h1>
+    <p>ID oferty Allegro: {{offerId}}</p>
+  </div>
+
+  <div class='error-info'>
+    <h2>Szczegóły błędu</h2>
+    <p><strong>Etap:</strong> {{stage}}</p>
+    <p><strong>Czas:</strong> {{timestamp}}</p>
+    <p><strong>Błąd:</strong> {{error}}</p>
+
+    {{#if productDetails}}
+      <h2>Szczegóły produktu</h2>
+      <pre>{{json productDetails}}</pre>
+    {{/if}}
+  </div>
+</div>

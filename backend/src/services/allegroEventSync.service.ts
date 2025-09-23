@@ -62,7 +62,12 @@ export class AllegroEventSyncService {
       const events = (await this.allegroService.getOfferEvents({
         from: this.lastEventId,
         limit: 1000,
-        type: ['OFFER_STOCK_CHANGED'],
+        type: [
+          'OFFER_STOCK_CHANGED',
+          'OFFER_ENDED',
+          'OFFER_ARCHIVED',
+          'OFFER_QUANTITY_CHANGED',
+        ],
       })) as AllegroEventsResponse;
 
       console.log(`📦 Otrzymano ${events.offerEvents.length} zdarzeń`);

@@ -40,6 +40,9 @@ export default function NewProductPage() {
   const handleSubmit = async (data: any) => {
     try {
       setIsUploading(true);
+      console.log("🚀 [DEBUG] Rozpoczynam dodawanie produktu");
+      console.log("🚀 [DEBUG] Dane wejściowe:", data);
+      console.log("🚀 [DEBUG] Czy dodać na Allegro?", addToAllegro);
 
       if (!data.name || data.name.length < 12) {
         toast({
@@ -158,6 +161,10 @@ export default function NewProductPage() {
       };
 
       if (addToAllegro) {
+        console.log(
+          "📦 [DEBUG ALLEGRO] Rozpoczynam proces dodawania na Allegro"
+        );
+
         const cennikSmartDlaWagi = [
           { maxWaga: 1, id: "6c97494e-b06e-463e-8cf5-d36750d2ca31" }, // do 1kg
           { maxWaga: 4, id: "38161cbb-1386-4f17-96e3-4fae1f6de5ee" }, // do 4kg
@@ -257,10 +264,9 @@ export default function NewProductPage() {
               values: [`S-${Math.floor(Math.random() * 10000)}`],
             },
             {
-              id: "248929", // Marka
+              id: "248811", // Marka
               name: "Marka",
-              values: ["Stojan"],
-              valuesIds: ["248929_969280"],
+              values: ["bez marki"],
             },
             {
               id: "219157", // Rodzaj silnika
@@ -310,8 +316,8 @@ export default function NewProductPage() {
       <p>waga: <b>${data.weight || ""}kg</b></p>`;
         } else {
           productDescription = `<h1>SILNIK ELEKTRYCZNY</h1>
-      <h2>${data.power?.value || ""}kW ${data.rpm?.value || ""}obr.</h2>
-      <p>${data.description || "Brak opisu"}</p>`;
+    <h2>${data.power?.value || ""}kW ${data.rpm?.value || ""}obr.</h2>
+    <p>${data.description || "Brak opisu"}</p>`;
         }
 
         const allegroPrice =
@@ -392,6 +398,18 @@ export default function NewProductPage() {
           "Finalna kategoria produktu na Allegro:",
           allegroCategoryId
         );
+        console.log(
+          "📦 [DEBUG ALLEGRO] Przygotowana oferta Allegro:",
+          JSON.stringify(allegroOffer, null, 2)
+        );
+        toast({
+          title: "Wysyłam na Allegro...",
+          description: "Trwa dodawanie produktu na Allegro",
+        });
+
+        console.log(
+          "📦 [DEBUG ALLEGRO] Wywołuję API: /api/admin/allegro/offers"
+        );
 
         // Wywołanie API do utworzenia produktu na Allegro
         const allegroResponse = await fetch("/api/admin/allegro/offers", {
@@ -402,46 +420,134 @@ export default function NewProductPage() {
           body: JSON.stringify(allegroOffer),
         });
 
-        const allegroData = await allegroResponse.json();
+        console.log(
+          "📦 [DEBUG ALLEGRO] Status odpowiedzi:",
+          allegroResponse.status
+        );
+        console.log(
+          "📦 [DEBUG ALLEGRO] Headers odpowiedzi:",
+          allegroResponse.headers
+        );
 
-        // Dodaj ID oferty z Allegro do danych produktu
-        processedData.marketplaces.allegro = {
-          active: true,
-          productId: allegroData.data.id,
-          url: `https://allegro.pl/oferta/${allegroData.data.id}`,
-          price: allegroPrice,
-          category: {
-            id: categoryId,
-          },
-          parameters: productParameters,
-          description: {
-            sections: allegroData.data.description.sections,
-          },
-          stock: allegroData.data.stock.available,
-          images: allegroData.data.images,
-          lastSyncAt: new Date(),
-        };
+        const responseText = await allegroResponse.text();
+        console.log("📦 [DEBUG ALLEGRO] Surowa odpowiedź:", responseText);
+
+        let allegroData;
+        try {
+          allegroData = JSON.parse(responseText);
+          console.log("📦 [DEBUG ALLEGRO] Sparsowana odpowiedź:", allegroData);
+        } catch (parseError) {
+          console.error(
+            "❌ [DEBUG ALLEGRO] Błąd parsowania odpowiedzi:",
+            parseError
+          );
+          console.error("❌ [DEBUG ALLEGRO] Treść odpowiedzi:", responseText);
+          throw new Error(
+            `Nieprawidłowa odpowiedź z serwera Allegro: ${responseText}`
+          );
+        }
+
+        if (!allegroResponse.ok) {
+          console.error("❌ [DEBUG ALLEGRO] Błąd HTTP:", {
+            status: allegroResponse.status,
+            data: allegroData,
+          });
+
+          toast({
+            title: "Błąd Allegro",
+            description: allegroData?.error || `Błąd ${allegroResponse.status}`,
+            variant: "destructive",
+          });
+
+          throw new Error(
+            allegroData?.error || "Błąd podczas dodawania na Allegro"
+          );
+        }
+
+        if (allegroData?.data?.id) {
+          console.log(
+            "✅ [DEBUG ALLEGRO] Produkt dodany na Allegro z ID:",
+            allegroData.data.id
+          );
+          console.log(
+            "✅ [DEBUG ALLEGRO] URL oferty:",
+            `https://allegro.pl/oferta/${allegroData.data.id}`
+          );
+
+          toast({
+            title: "Sukces Allegro",
+            description: `Produkt dodany na Allegro (ID: ${allegroData.data.id})`,
+          });
+
+          // Dodaj ID oferty z Allegro do danych produktu
+          processedData.marketplaces.allegro = {
+            active: true,
+            productId: allegroData.data.id,
+            url: `https://allegro.pl/oferta/${allegroData.data.id}`,
+            price: allegroPrice,
+            category: {
+              id: categoryId,
+            },
+            parameters: productParameters,
+            description: {
+              sections: allegroData.data.description?.sections || [],
+            },
+            stock: allegroData.data.stock?.available || data.stock,
+            images: allegroData.data.images || [],
+            lastSyncAt: new Date(),
+          };
+
+          console.log(
+            "✅ [DEBUG ALLEGRO] Dane Allegro dodane do produktu:",
+            processedData.marketplaces.allegro
+          );
+        } else {
+          console.error(
+            "❌ [DEBUG ALLEGRO] Brak ID w odpowiedzi:",
+            allegroData
+          );
+          throw new Error("Nie otrzymano ID oferty z Allegro");
+        }
+      } else {
+        console.log(
+          "⏭️ [DEBUG] Pomijam dodawanie na Allegro (opcja wyłączona)"
+        );
       }
+
+      console.log("💾 [DEBUG] Zapisuję produkt do bazy danych");
+      console.log("💾 [DEBUG] Finalne dane produktu:", processedData);
+
       await createProduct(processedData);
+
+      console.log("✅ [DEBUG] Produkt zapisany pomyślnie");
+
       sessionStorage.setItem("block_form_saving", "true");
       localStorage.removeItem("product_form_draft");
+
       toast({
         title: "Sukces",
-        description: "Produkt został dodany pomyślnie",
+        description: addToAllegro
+          ? "Produkt został dodany do sklepu i na Allegro"
+          : "Produkt został dodany do sklepu",
       });
+
       setTimeout(() => {
-        localStorage.removeItem("product_form_draft"); // dodatkowe czyszczenie
+        localStorage.removeItem("product_form_draft");
         window.location.href = "/admin/marketplaces/own-store";
-      }, 100);
+      }, 2000); // Zwiększamy timeout do 2 sekund dla lepszej widoczności toastów
     } catch (error: any) {
-      console.error("Błąd:", error);
+      console.error("❌ [DEBUG] Główny błąd:", error);
+      console.error("❌ [DEBUG] Stack trace:", error.stack);
+
       toast({
         title: "Błąd",
         description: error.message || "Nie udało się dodać produktu",
         variant: "destructive",
+        duration: 10000, // Dłuższy czas dla błędów
       });
     } finally {
       setIsUploading(false);
+      console.log("🏁 [DEBUG] Zakończono proces dodawania produktu");
     }
   };
 

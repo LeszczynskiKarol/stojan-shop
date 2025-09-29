@@ -19,7 +19,6 @@ export default function CheckoutSuccessPage() {
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [showDialog, setShowDialog] = useState(true);
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export default function CheckoutSuccessPage() {
       if (consentSettings.ad_storage === "granted") {
         // Konwersja Google Ads
         window.gtag("event", "conversion", {
-          send_to: "AW-108-508-8127/KEWXCLKemJoaEL_JkNcD",
+          send_to: "AW-988030143/MXlzCNyahrcZEL_JkNcD",
           value: orderDetails.total,
           currency: "PLN",
           transaction_id: orderDetails.orderNumber,
@@ -44,7 +43,7 @@ export default function CheckoutSuccessPage() {
       // DataLayer push zawsze wysyłamy
       window.dataLayer.push({ ecommerce: null });
       window.dataLayer.push({
-        event: "purchase",
+        event: "purchase_success",
         ecommerce: {
           currency: "PLN",
           transaction_id: orderDetails.id,

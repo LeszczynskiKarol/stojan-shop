@@ -46,7 +46,7 @@ export function useTracking() {
     // Sprawdź czy mamy zgodę na reklamy
     if (consentSettings.ad_storage === "granted") {
       window.gtag("event", "conversion", {
-        send_to: "AW-108-508-8127/KEWXCLKemJoaEL_JkNcD",
+        send_to: "AW-988030143/KEWXCLKemJoaEL_JkNcD",
         ...params,
       });
     }

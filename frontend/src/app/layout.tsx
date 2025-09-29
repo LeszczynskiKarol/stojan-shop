@@ -57,7 +57,7 @@ export default function RootLayout({
                 'functionality_storage': 'granted',
                 'personalization_storage': 'denied',
                 'security_storage': 'granted',
-                'wait_for_update': 2500 // Czekaj max 2.5s na decyzję użytkownika
+                'wait_for_update': 2500
               });
               
               // Sprawdź czy są zapisane ustawienia
@@ -70,6 +70,24 @@ export default function RootLayout({
               } catch (e) {
                 console.error('Error loading consent settings:', e);
               }
+            `,
+          }}
+        />
+
+        {/* DODAJ TEN TAG GOOGLE ADS TUTAJ */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-988030143"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="google-ads-config"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Konfiguracja Google Ads
+              gtag('config', 'AW-988030143', {
+                'allow_ad_personalization_signals': false // będzie kontrolowane przez consent
+              });
             `,
           }}
         />

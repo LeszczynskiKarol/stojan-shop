@@ -199,8 +199,8 @@ const PORT = Number(process.env.PORT) || 4000;
 const startServer = async () => {
   try {
     await AppDataSource.initialize();
-    //const allegroEventSync = new AllegroEventSyncService();
-    //allegroEventSync.startSync(300000);
+    const allegroEventSync = new AllegroEventSyncService();
+    allegroEventSync.startSync(300000);
     console.log(
       '🔄 Synchronizacja zdarzeń Allegro uruchomiona z interwałem 5 minut'
     );

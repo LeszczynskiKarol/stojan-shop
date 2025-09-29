@@ -60,41 +60,43 @@ export class AllegroEventSyncService {
       );
 
       const events = (await this.allegroService.getOfferEvents({
-        from: this.lastEventId,
+        from: this.lastEventId, // Może być null przy pierwszym uruchomieniu
         limit: 1000,
-        type: [
-          'OFFER_STOCK_CHANGED',
-          'OFFER_ENDED',
-          'OFFER_ARCHIVED',
-          'OFFER_QUANTITY_CHANGED',
-        ],
+        type: ['OFFER_STOCK_CHANGED', 'OFFER_ENDED', 'OFFER_ARCHIVED'],
       })) as AllegroEventsResponse;
 
       console.log(`📦 Otrzymano ${events.offerEvents.length} zdarzeń`);
+
       if (events.offerEvents.length > 0) {
         console.log(
           '📦 Pierwsze zdarzenie:',
           JSON.stringify(events.offerEvents[0], null, 2)
         );
-      }
 
-      if (events.offerEvents.length > 0) {
         for (const event of events.offerEvents) {
           console.log(
-            `🔄 Przetwarzam zdarzenie ID: ${event.id}, Typ: ${event.type}`
+            `🔄 Przetwarzam zdarzenie: ${event.id}, Typ: ${event.type}`
           );
-          await this.handleStockChangeEvent(event);
+
+          // Przetwarzaj tylko zdarzenia OFFER_STOCK_CHANGED
+          if (event.type === 'OFFER_STOCK_CHANGED') {
+            await this.handleStockChangeEvent(event);
+          } else {
+            console.log(`⏭️ Pomijam zdarzenie typu: ${event.type}`);
+          }
+
+          // Zawsze aktualizuj lastEventId
           this.lastEventId = event.id;
           console.log(`✅ Zaktualizowano lastEventId: ${this.lastEventId}`);
         }
-        console.log(
-          `✅ Przetworzono wszystkie ${events.offerEvents.length} zdarzeń`
-        );
+
+        console.log(`✅ Przetworzono ${events.offerEvents.length} zdarzeń`);
       } else {
         console.log(`ℹ️ Brak nowych zdarzeń do przetworzenia`);
       }
     } catch (error) {
       console.error('❌ Błąd synchronizacji:', error);
+      // Nie przerywaj działania serwisu - kontynuuj działanie
     }
   }
 

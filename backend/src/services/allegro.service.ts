@@ -87,16 +87,14 @@ export class AllegroService {
 
   private wybierzCennikSmart(waga: number): string {
     console.log(`Wybieram cennik dla wagi: ${waga}kg`);
+
+    // POPRAWKA - dla wag >30kg zwróć właściwy cennik
     if (waga > 30) {
-      // Dla paczek powyżej 30kg zawsze używamy cennika bez Smart
-      const bezSmartCennik = this.cennikSmartDlaWagi.find((c) => !c.smart);
+      const bezSmartCennik = 'aa79662f-56d6-4f98-89c5-c960482c2c5f';
       console.log(
-        `Paczka powyżej 30kg - używam cennika bez Smart: ${bezSmartCennik?.id}`
+        `Paczka powyżej 30kg - używam cennika bez Smart: ${bezSmartCennik}`
       );
-      return (
-        bezSmartCennik?.id ||
-        this.cennikSmartDlaWagi[this.cennikSmartDlaWagi.length - 1].id
-      );
+      return bezSmartCennik;
     }
 
     const cennik = this.cennikSmartDlaWagi.find(
@@ -568,7 +566,24 @@ export class AllegroService {
         allegroOffer.productSet[0].product = {};
       }
 
-      allegroOffer.productSet[0].marketedBeforeGPSRObligation = true;
+      if (
+        allegroOffer.parameters?.find((p: AllegroParameter) => p.id === '11323')
+          ?.valuesIds?.[0] === '11323_2'
+      ) {
+        allegroOffer.productSet[0].marketedBeforeGPSRObligation = true;
+      }
+
+      // Dodaj wymagane dane bezpieczeństwa
+      allegroOffer.productSet[0].responsibleProducer = {
+        type: 'NAME',
+        name: 'Stojan s.c.', // <--- TU ZMIEŃ! MUSI BYĆ DOKŁADNIE JAK W PANELU!
+      };
+
+      allegroOffer.productSet[0].safetyInformation = {
+        type: 'TEXT',
+        description:
+          'Produkt spełnia wszystkie wymagania bezpieczeństwa UE. Przed użyciem zapoznaj się z instrukcją obsługi.',
+      };
 
       // Upewnij się, że produkt ma nazwę
       allegroOffer.productSet[0].product.name = allegroOffer.name;

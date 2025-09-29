@@ -160,6 +160,24 @@ export default function NewProductPage() {
         },
       };
 
+      const allegroManufacturerMapping: Record<string, string> = {
+        ABB: "ABB",
+        SIEMENS: "Siemens",
+        SEW: "SEW-Eurodrive",
+        WEG: "WEG",
+        NORD: "Nord",
+        TAMEL: "Tamel",
+        CELMA: "Celma Indukta",
+        BESEL: "Besel",
+        INDUKTA: "Celma Indukta",
+        // dodaj więcej według potrzeb
+      };
+
+      const mapManufacturer = (manufacturer: string): string => {
+        const upper = manufacturer?.toUpperCase().trim() || "";
+        return allegroManufacturerMapping[upper] || "inna marka";
+      };
+
       if (addToAllegro) {
         console.log(
           "📦 [DEBUG ALLEGRO] Rozpoczynam proces dodawania na Allegro"
@@ -175,7 +193,7 @@ export default function NewProductPage() {
           { maxWaga: 22, id: "452b15db-1f8b-4f16-b7cc-c882b7d8f4af" }, // 18,5-22kg
           { maxWaga: 27.5, id: "f1570290-5db6-4614-bc16-0aeddbccd58f" }, // 22,5-27,5kg
           { maxWaga: 30, id: "592aba1b-5240-4589-8118-dd9d22306e66" }, // 28-30kg
-          { maxWaga: Infinity, id: "6c97494e-b06e-463e-8cf5-d36750d2ca31" }, // powyżej 30kg - bez Smart!
+          { maxWaga: Infinity, id: "aa79662f-56d6-4f98-89c5-c960482c2c5f" }, // powyżej 30kg - bez Smart!
         ];
 
         const wybierzCennikSmart = (waga: number): string => {
@@ -190,97 +208,124 @@ export default function NewProductPage() {
         let categoryId = "121456"; // Domyślnie silniki
         let productParameters = [];
 
-        if (data.mainCategory && data.mainCategory.includes("motoreduktor")) {
+        if (
+          data.categories &&
+          data.categories.some(
+            (cat: any) =>
+              cat.slug === "motoreduktory" || cat.name.includes("motoreduktor")
+          )
+        ) {
           categoryId = "121452"; // ID kategorii motoreduktorów
 
           // Parametry tylko dla motoreduktorów (kategoria 121452)
           productParameters = [
             {
-              id: "11726", // Moc znamionowa
+              id: "11726",
               name: "Moc znamionowa",
-              values: [data.power?.value || "0"],
+              values: [
+                Math.round(
+                  parseFloat(data.power?.value?.replace(",", ".") || "0") * 1000
+                ).toString(),
+              ],
             },
             {
-              id: "221421", // Prędkość obrotowa
+              id: "221421",
               name: "Prędkość obrotowa",
-              values: [data.rpm?.value || "0"],
+              values: [
+                Math.round(
+                  parseFloat(data.rpm?.value?.replace(",", ".") || "0")
+                ).toString(),
+              ],
             },
             {
-              id: "214694", // Waga dla motoreduktorów
+              id: "214694",
               name: "Waga",
               values: [data.weight ? data.weight.toString() : "0"],
             },
             {
-              id: "237206", // Model
+              id: "237206",
               name: "Model",
               values: [`MR-${Math.floor(Math.random() * 10000)}`],
             },
+            // USUŃ PARAMETR MARKA CAŁKOWICIE - nie jest obowiązkowy!
+            // Jeśli chcesz go dodać tylko gdy jest wartość:
             {
-              id: "248929", // Marka
+              id: "248929",
               name: "Marka",
-              values: ["Stojan"],
-              valuesIds: ["248929_969280"],
+              values: [
+                data.manufacturer && data.manufacturer.trim() !== ""
+                  ? data.manufacturer
+                  : "STOJAN",
+              ],
             },
             {
-              id: "18654", // Rodzaj motoreduktora
+              id: "18654",
               name: "Rodzaj motoreduktora",
               values: ["walcowy"],
               valuesIds: ["18654_1"],
             },
             {
-              id: "224017", // Kod producenta
+              id: "224017",
               name: "Kod producenta",
-              values: [`MR-${Math.floor(Math.random() * 10000)}`],
+              values: [
+                `MR-${data.name
+                  .split(" ")
+                  .join("")
+                  .substring(0, 4)
+                  .toUpperCase()}`,
+              ],
             },
           ];
         } else {
           // Parametry tylko dla silników elektrycznych (kategoria 121456)
           productParameters = [
             {
-              id: "219137", // Moc dla silników
+              id: "219137",
               name: "Moc",
               values: [data.power?.value || "0"],
             },
             {
-              id: "219153", // Obroty dla silników
+              id: "219153",
               name: "Obroty",
               values: [data.rpm?.value || "0"],
             },
             {
-              id: "214478", // Waga
+              id: "214478",
               name: "Waga",
               values: [data.weight ? data.weight.toString() : "0"],
             },
             {
-              id: "219149", // Średnica wału
+              id: "219149",
               name: "Średnica wału",
               values: [
                 data.shaftDiameter ? data.shaftDiameter.toString() : "0",
               ],
             },
             {
-              id: "237206", // Model
+              id: "237206",
               name: "Model",
               values: [`S-${Math.floor(Math.random() * 10000)}`],
             },
+            // NIE DODAWAJ PARAMETRU MARKA JEŚLI NIE MA WARTOŚCI
             {
-              id: "248811", // Marka
-              name: "Marka",
-              values: ["bez marki"],
-            },
-            {
-              id: "219157", // Rodzaj silnika
+              id: "219157",
               name: "Rodzaj silnika",
               values: ["elektryczny"],
               valuesIds: ["219157_284941"],
             },
             {
-              id: "224017", // Kod producenta
+              id: "224017",
               name: "Kod producenta",
-              values: [`S-${Math.floor(Math.random() * 10000)}`],
+              values: [
+                `MR-${data.name
+                  .split(" ")
+                  .join("")
+                  .substring(0, 4)
+                  .toUpperCase()}`,
+              ],
             },
             {
-              id: "219145", // Typ silnika
+              id: "219145",
               name: "Typ silnika",
               values: [
                 data.mainCategory?.toLowerCase().includes("jednofazowy")
@@ -294,6 +339,15 @@ export default function NewProductPage() {
               ],
             },
           ];
+          productParameters.splice(5, 0, {
+            id: "248811",
+            name: "Marka",
+            values: [
+              data.manufacturer && data.manufacturer.trim() !== ""
+                ? data.manufacturer
+                : "STOJAN",
+            ],
+          });
         }
 
         // Przygotuj opis w zależności od kategorii

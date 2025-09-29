@@ -4,7 +4,6 @@ import { AllegroService } from '../services/allegro.service';
 import { ApiResponse } from '../utils/apiResponse';
 import { allegroConfig } from '../config/allegro.config';
 import { ProductService } from '../services/product.service';
-import { AllegroOffer } from '../entities/AllegroTypes';
 import { Repository } from 'typeorm';
 import { Product } from '../entities/Product';
 import { AppDataSource } from '../config/database';
@@ -817,6 +816,25 @@ export class AllegroController {
         success: false,
         error: 'Błąd pobierania ofert',
       });
+    }
+  };
+
+  public getCategoryParameters: RequestHandler = async (req, res) => {
+    try {
+      const categoryId = req.params.categoryId || '121456'; // silniki
+      const token = await this.allegroService.getValidToken();
+
+      const response = await fetch(
+        `https://api.allegro.pl/sale/categories/${categoryId}/parameters`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.allegro.public.v1+json',
+          },
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error });
     }
   };
 }

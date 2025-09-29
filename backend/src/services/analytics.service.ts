@@ -36,6 +36,11 @@ export class AnalyticsService {
           conversion: {
             occurred: eventData.eventType !== 'order_cancelled',
             type: eventData.eventType,
+            // Dodaj zapisywanie metody płatności
+            paymentMethod:
+              eventData.data.payment_method || eventData.data.paymentMethod,
+            value: eventData.data.payment_amount || eventData.data.value,
+            orderId: eventData.data.order_id,
             ...eventData.data,
           },
         })
@@ -116,20 +121,8 @@ export class AnalyticsService {
     return result;
   }
 
-  async getDetailedSessions(page: number = 1, perPage: number = 20) {
-    // Najpierw pobieramy unikalne sessionId
-    const uniqueSessionIds = await this.sessionRepository
-      .createQueryBuilder('session')
-      .select('session.sessionId', 'sessionId')
-      .where('session.isBot = :isBot', { isBot: false })
-      .getRawMany();
-
-    // Jeśli nie ma żadnych sesji, zwracamy pusty wynik
-    if (uniqueSessionIds.length === 0) {
-      return { sessions: [], total: 0, pages: 0 };
-    }
-
-    // Tworzymy query builder
+  async getDetailedSessions(page: number = 1, perPage: number = 50) {
+    // Pobierz wszystkie sesje bez filtrowania duplikatów
     const queryBuilder = this.sessionRepository
       .createQueryBuilder('session')
       .select([
@@ -152,17 +145,24 @@ export class AnalyticsService {
         'session.referringUrl',
       ])
       .where('session.isBot = :isBot', { isBot: false })
-      .andWhere('session.sessionId IN (:...sessionIds)', {
-        sessionIds: uniqueSessionIds.map((s) => s.sessionId),
-      })
-      .orderBy('session.startTime', 'DESC')
+      .orderBy('session.startTime', 'DESC');
+
+    // Policz całkowitą liczbę
+    const total = await queryBuilder.getCount();
+
+    // Zastosuj paginację
+    const sessions = await queryBuilder
       .skip((page - 1) * perPage)
-      .take(perPage);
+      .take(perPage)
+      .getMany();
 
-    const sessions = await queryBuilder.getMany();
-    const total = uniqueSessionIds.length;
-
-    return { sessions, total, pages: Math.ceil(total / perPage) };
+    return {
+      sessions,
+      total,
+      pages: Math.ceil(total / perPage),
+      currentPage: page,
+      perPage,
+    };
   }
 
   async getConversionFunnel() {

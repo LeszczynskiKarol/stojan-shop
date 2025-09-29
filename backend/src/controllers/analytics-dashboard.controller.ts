@@ -7,19 +7,22 @@ export class AnalyticsDashboardController {
 
   constructor() {
     this.service = new AnalyticsService();
-    // Bindujemy metody
     this.getDashboardStats = this.getDashboardStats.bind(this);
     this.getSessions = this.getSessions.bind(this);
   }
 
   public async getDashboardStats(req: Request, res: Response) {
     try {
+      // Pobierz parametry z zapytania
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 500; // Zwiększ domyślny limit
+
       const [overallStats, trafficStats, funnel, sessionsData] =
         await Promise.all([
           this.service.getOverallStats(),
           this.service.getDetailedTrafficStats(),
           this.service.getConversionFunnel(),
-          this.service.getDetailedSessions(1, 100),
+          this.service.getDetailedSessions(page, limit), // Użyj parametrów
         ]);
 
       res.json({
@@ -29,6 +32,8 @@ export class AnalyticsDashboardController {
           trafficSources: trafficStats,
           funnel,
           sessions: sessionsData.sessions,
+          sessionsTotal: sessionsData.total,
+          sessionsPages: sessionsData.pages,
         },
       });
     } catch (error) {
@@ -43,7 +48,7 @@ export class AnalyticsDashboardController {
   public async getSessions(req: Request, res: Response) {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const perPage = parseInt(req.query.perPage as string) || 20;
+      const perPage = parseInt(req.query.perPage as string) || 50;
       const data = await this.service.getDetailedSessions(page, perPage);
       res.json({
         success: true,

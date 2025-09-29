@@ -1,10 +1,10 @@
 // backend/src/services/analytics-session.service.ts
+import { DeepPartial, Repository } from 'typeorm';
 import { AppDataSource } from '../config/database';
-import { Repository, DeepPartial } from 'typeorm';
 import { AnalyticsSession, TrafficSource } from '../entities/AnalyticsSession';
 import { detectBot } from '../utils/bot-detector';
-import { parseUserAgent } from '../utils/user-agent-parser';
 import { getGeoLocation } from '../utils/geo-location';
+import { parseUserAgent } from '../utils/user-agent-parser';
 
 export class AnalyticsSessionService {
   private repository: Repository<AnalyticsSession>;
@@ -21,7 +21,17 @@ export class AnalyticsSessionService {
     referrer?: string;
     url: string;
   }) {
+    // Pomijaj boty i narzędzia adminów
     if (data.userAgent.includes('Bearer')) {
+      return null;
+    }
+
+    // Dodaj wykluczenie dla znanego user-agenta admina
+    if (
+      data.userAgent.includes('Mozilla/5.0') &&
+      data.ipAddress === 'TWOJE_IP'
+    ) {
+      console.log('⏭️ Pomijam sesję admina');
       return null;
     }
 

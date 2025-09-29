@@ -1,10 +1,10 @@
 // backend/src/entities/AnalyticsEvent.ts
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  Entity,
   Index,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity('analytics_events')

@@ -1,13 +1,13 @@
 // backend/src/controllers/order.controller.ts
-import express, { Request, Response, NextFunction } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { OrderService } from '../services/order.service';
-import { ApiError } from '../utils/apiError';
-import { ApiResponse } from '../utils/apiResponse';
-import { StripeService } from '../services/stripe.service';
 import { AnalyticsService } from '../services/analytics.service';
+import { OrderService } from '../services/order.service';
+import { StripeService } from '../services/stripe.service';
 import { CartItem } from '../types/cart.types';
 import { Order } from '../types/order.types';
+import { ApiError } from '../utils/apiError';
+import { ApiResponse } from '../utils/apiResponse';
 
 export class OrderController {
   private orderService: OrderService;
@@ -90,6 +90,18 @@ export class OrderController {
       if (paymentMethod === 'cod' && result.data.order) {
         // Wywołujemy updateOrderStatus, który wyśle maile
         await this.orderService.updateOrderStatus(result.data.order.id, 'paid');
+        await this.analyticsService.trackEvent({
+          eventType: 'order_success',
+          sessionId: req.body.analyticsSessionId,
+          data: {
+            order_id: result.data.order.orderNumber,
+            payment_method: 'cod',
+            payment_type: 'cash_on_delivery',
+            payment_status: 'pending',
+            payment_amount: total,
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
 
       // Owijamy result w dodatkową strukturę success

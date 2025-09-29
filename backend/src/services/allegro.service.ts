@@ -1231,31 +1231,73 @@ export class AllegroService {
   }
 
   async getOfferEvents(params: GetOfferEventsParams) {
-    const accessToken = await this.getValidToken();
+    try {
+      console.log('📋 Parametry wejściowe getOfferEvents:', {
+        from: params.from,
+        limit: params.limit,
+        type: params.type,
+      });
 
-    const queryParams = new URLSearchParams();
-    if (params.from) queryParams.append('from', params.from);
-    if (params.limit) queryParams.append('limit', params.limit.toString());
-    if (params.type) {
-      params.type.forEach((type) => queryParams.append('type', type));
-    }
+      const accessToken = await this.getValidToken();
+      console.log('🔑 Token pobrany dla getOfferEvents');
 
-    const response = await fetch(
-      `${allegroConfig.apiUrl}/sale/offer-events?${queryParams.toString()}`,
-      {
+      const queryParams = new URLSearchParams();
+
+      // Dodaj 'from' tylko jeśli nie jest null/undefined
+      if (
+        params.from !== null &&
+        params.from !== undefined &&
+        params.from !== ''
+      ) {
+        queryParams.append('from', params.from);
+      }
+
+      if (params.limit) {
+        queryParams.append('limit', params.limit.toString());
+      }
+
+      if (params.type && params.type.length > 0) {
+        params.type.forEach((type) => queryParams.append('type', type));
+      }
+
+      const url = `${allegroConfig.apiUrl}/sale/offer-events${
+        queryParams.toString() ? '?' + queryParams.toString() : ''
+      }`;
+
+      console.log('📡 Pełne URL zapytania:', url);
+
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           Accept: 'application/vnd.allegro.public.v1+json',
         },
+      });
+
+      console.log('📡 Status odpowiedzi:', response.status);
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('❌ Błąd API Allegro - status:', response.status);
+        console.error('❌ Błąd API Allegro - treść:', errorBody);
+
+        // Spróbuj sparsować jako JSON jeśli to możliwe
+        try {
+          const errorJson = JSON.parse(errorBody);
+          console.error('❌ Błąd API Allegro - szczegóły:', errorJson);
+        } catch (e) {
+          // Ignoruj jeśli nie jest JSON
+        }
+
+        throw new Error(`Błąd pobierania zdarzeń: ${response.statusText}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Błąd pobierania zdarzeń: ${response.statusText}`);
+      const data = await response.json();
+
+      return data;
+    } catch (error) {
+      console.error('❌ Błąd w getOfferEvents:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data;
   }
 
   async updateOfferStockById(

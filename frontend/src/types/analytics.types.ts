@@ -2,7 +2,12 @@
 export interface AnalyticsSession {
   id: string;
   sessionId: string;
-  trafficSource: "direct" | "referral" | "search_engine" | "social";
+  trafficSource:
+    | "direct"
+    | "referral"
+    | "search_engine"
+    | "social"
+    | "google_ads";
   referringUrl?: string;
   ipAddress: string;
   deviceType: string;
@@ -27,6 +32,20 @@ export interface AnalyticsSession {
     url: string;
     data: any;
   }>;
+  conversion?: {
+    occurred: boolean;
+    type?:
+      | "add_to_cart_conversion"
+      | "order_pending"
+      | "order_success"
+      | "order_cancelled";
+    value?: number;
+    productId?: string;
+    orderId?: string;
+    paymentMethod?: string;
+    paymentType?: string;
+    paymentStatus?: string;
+  };
 }
 
 export interface AnalyticsData {

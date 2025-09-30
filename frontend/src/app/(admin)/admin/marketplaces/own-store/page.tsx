@@ -133,6 +133,8 @@ const OwnStorePage = () => {
   });
 
   const openLinkingModal = async (product: IProduct) => {
+    console.log("[FRONTEND] Otwieranie modalu dla produktu:", product.name);
+
     setLinkingModal({
       isOpen: true,
       productId: product.id!,
@@ -143,18 +145,38 @@ const OwnStorePage = () => {
     });
 
     try {
-      // Używamy lokalnego API Route zamiast bezpośredniego zapytania do backendu
+      console.log("[FRONTEND] Wywołanie API: /api/allegro/unlinked-offers");
       const response = await fetch("/api/allegro/unlinked-offers");
 
+      console.log("[FRONTEND] Status odpowiedzi:", response.status);
+      console.log("[FRONTEND] Headers:", response.headers);
+
       const contentType = response.headers.get("content-type");
+      console.log("[FRONTEND] Content-Type:", contentType);
+
       if (!contentType || !contentType.includes("application/json")) {
-        console.error("Odpowiedź nie jest JSON, otrzymano:", contentType);
-        throw new Error("Nieprawidłowa odpowiedź z serwera");
+        console.error("[FRONTEND] Nieprawidłowy Content-Type:", contentType);
+        throw new Error("Nieprawidłowa odpowiedź z serwera - oczekiwano JSON");
       }
 
-      const data = await response.json();
+      const responseText = await response.text();
+      console.log(
+        "[FRONTEND] Surowa odpowiedź (pierwsze 500 znaków):",
+        responseText.substring(0, 500)
+      );
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("[FRONTEND] Sparsowane dane:", data);
+      } catch (parseError) {
+        console.error("[FRONTEND] Błąd parsowania:", parseError);
+        throw new Error("Nie można sparsować odpowiedzi jako JSON");
+      }
 
       if (data.success && data.data) {
+        console.log("[FRONTEND] Otrzymano oferty:", data.data.length);
+
         const filteredOffers = data.data.filter((offer: any) => {
           const searchLower = product.name.toLowerCase();
           const offerLower = offer.name.toLowerCase();
@@ -163,16 +185,20 @@ const OwnStorePage = () => {
           );
         });
 
+        console.log("[FRONTEND] Przefiltrowano oferty:", filteredOffers.length);
+
         setLinkingModal((prev) => ({
           ...prev,
           allegroOffers: filteredOffers,
           loading: false,
         }));
       } else {
+        console.error("[FRONTEND] Brak danych w odpowiedzi lub błąd:", data);
         throw new Error(data.error || "Nie udało się pobrać ofert");
       }
     } catch (error) {
-      console.error("Błąd pobierania ofert:", error);
+      console.error("[FRONTEND] Błąd w openLinkingModal:", error);
+
       setLinkingModal((prev) => ({
         ...prev,
         allegroOffers: [],
@@ -181,7 +207,10 @@ const OwnStorePage = () => {
 
       toast({
         title: "Błąd",
-        description: "Nie udało się pobrać listy ofert z Allegro",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać listy ofert z Allegro",
         variant: "destructive",
       });
     }

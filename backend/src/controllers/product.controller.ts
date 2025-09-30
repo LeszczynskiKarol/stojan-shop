@@ -495,7 +495,7 @@ export class ProductController {
       const sortField = req.query.sortField as string;
       const sortDirection = req.query.sortDirection as 'asc' | 'desc';
       const search = req.query.search as string;
-      const unlinkedOnly = req.query.unlinkedOnly === 'true'; // DODAJ TĘ LINIĘ!
+      const unlinkedOnly = req.query.unlinked === 'true'; // Zmień nazwę z 'unlinked' na 'unlinkedOnly'
 
       const result = await this.productService.getProductsForAdmin({
         page,
@@ -503,7 +503,7 @@ export class ProductController {
         sortField,
         sortDirection,
         search,
-        unlinkedOnly,
+        unlinkedOnly, // Zmień z 'unlinked' na 'unlinkedOnly'
       });
 
       res.json(
@@ -1032,15 +1032,22 @@ export class ProductController {
     res
   ): Promise<void> => {
     try {
-      const count = await this.productService.getUnlinkedCount();
+      const productRepository = AppDataSource.getRepository(Product);
+
+      const count = await productRepository
+        .createQueryBuilder('product')
+        .where('product.matched_store_product IS NULL')
+        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL")
+        .getCount();
+
+      console.log(`📊 Znaleziono ${count} niepowiązanych produktów`);
       res.json({ success: true, count });
     } catch (error) {
-      console.error('Błąd liczenia niepowiązanych produktów:', error);
-      res.status(500).json({
-        success: false,
-        count: 0,
-        error: 'Błąd pobierania liczby niepowiązanych produktów',
-      });
+      console.error('❌ Błąd liczenia niepowiązanych produktów:', error);
+      // Poprawione typowanie error
+      const errorMessage =
+        error instanceof Error ? error.message : 'Nieznany błąd';
+      res.status(500).json({ success: false, count: 0, error: errorMessage });
     }
   };
 }

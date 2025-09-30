@@ -51,7 +51,7 @@ const OwnStorePage = () => {
     direction: "desc",
   });
   const [totalUnlinkedCount, setTotalUnlinkedCount] = useState(0);
-
+  const [unlinkedCount, setUnlinkedCount] = useState<number>(0);
   const [showOnlyUnlinked, setShowOnlyUnlinked] = useState(false);
   const [allegroUrls, setAllegroUrls] = useState<Record<string, string>>({});
   const [loadingAllegroUrls, setLoadingAllegroUrls] = useState<
@@ -277,20 +277,17 @@ const OwnStorePage = () => {
     const fetchUnlinkedCount = async () => {
       try {
         const response = await fetch("/api/products/unlinked-count");
-        if (response.ok) {
-          const data = await response.json();
-          setTotalUnlinkedCount(data.count || 0);
+        const data = await response.json();
+        if (data.success) {
+          setUnlinkedCount(data.count);
         }
       } catch (error) {
-        console.error(
-          "Błąd pobierania liczby niepowiązanych produktów:",
-          error
-        );
+        console.error("Błąd pobierania liczby niepowiązanych:", error);
       }
     };
 
     fetchUnlinkedCount();
-  }, [products]); // Odświeżaj po każdej zmianie produktów
+  }, [products]); // odśwież gdy produkty się zmienią
 
   useEffect(() => {
     const fetchManufacturers = async () => {
@@ -490,6 +487,7 @@ const OwnStorePage = () => {
       sortField: sortConfig.key,
       sortDirection: sortConfig.direction,
       search: searchTerm,
+      showOnlyUnlinked,
     });
   }, [
     currentPage,
@@ -2009,12 +2007,15 @@ const OwnStorePage = () => {
         <div className="flex gap-4">
           <Button
             variant={showOnlyUnlinked ? "destructive" : "outline"}
-            onClick={() => setShowOnlyUnlinked(!showOnlyUnlinked)}
+            onClick={() => {
+              setShowOnlyUnlinked(!showOnlyUnlinked);
+              setCurrentPage(0); // Reset do pierwszej strony
+            }}
           >
             {showOnlyUnlinked ? (
               <>❌ Pokaż wszystkie</>
             ) : (
-              <>🚫 Tylko bez Allegro ({totalUnlinkedCount})</>
+              <>🚫 Tylko bez Allegro ({unlinkedCount})</>
             )}
           </Button>
 

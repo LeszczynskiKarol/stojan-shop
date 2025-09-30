@@ -10,6 +10,7 @@ export interface FetchProductsAdminParams {
   search?: string;
   sortField?: string;
   sortDirection?: "asc" | "desc";
+  showOnlyUnlinked?: boolean;
 }
 
 interface AllegroProductsParams {
@@ -910,7 +911,11 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         queryParams.append("sortDirection", params.sortDirection);
       if (params.search) queryParams.append("search", params.search);
 
-      // Dodajemy parametry do URL
+      // To już jest OK - używa showOnlyUnlinked z rozszerzonego typu
+      if (params.showOnlyUnlinked) {
+        queryParams.append("unlinked", "true");
+      }
+
       const response = await api.get(
         `/products/admin?${queryParams.toString()}`
       );

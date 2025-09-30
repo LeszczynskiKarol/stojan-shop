@@ -76,6 +76,7 @@ export class ProductController {
     this.getProductsWithRpmValues = this.getProductsWithRpmValues.bind(this);
     this.bulkPriceUpdate = this.bulkPriceUpdate.bind(this);
     this.bulkPricePreview = this.bulkPricePreview.bind(this);
+    this.getUnlinkedCount = this.getUnlinkedCount.bind(this);
   }
 
   async createProduct(req: Request, res: Response) {
@@ -494,6 +495,7 @@ export class ProductController {
       const sortField = req.query.sortField as string;
       const sortDirection = req.query.sortDirection as 'asc' | 'desc';
       const search = req.query.search as string;
+      const unlinkedOnly = req.query.unlinkedOnly === 'true'; // DODAJ TĘ LINIĘ!
 
       const result = await this.productService.getProductsForAdmin({
         page,
@@ -501,6 +503,7 @@ export class ProductController {
         sortField,
         sortDirection,
         search,
+        unlinkedOnly,
       });
 
       res.json(
@@ -1021,6 +1024,23 @@ export class ProductController {
       );
     } catch (error) {
       next(error);
+    }
+  };
+
+  public getUnlinkedCount: RequestHandler = async (
+    _req,
+    res
+  ): Promise<void> => {
+    try {
+      const count = await this.productService.getUnlinkedCount();
+      res.json({ success: true, count });
+    } catch (error) {
+      console.error('Błąd liczenia niepowiązanych produktów:', error);
+      res.status(500).json({
+        success: false,
+        count: 0,
+        error: 'Błąd pobierania liczby niepowiązanych produktów',
+      });
     }
   };
 }

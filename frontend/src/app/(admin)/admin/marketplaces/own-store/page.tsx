@@ -50,6 +50,8 @@ const OwnStorePage = () => {
     key: "createdAt",
     direction: "desc",
   });
+  const [totalUnlinkedCount, setTotalUnlinkedCount] = useState(0);
+
   const [showOnlyUnlinked, setShowOnlyUnlinked] = useState(false);
   const [allegroUrls, setAllegroUrls] = useState<Record<string, string>>({});
   const [loadingAllegroUrls, setLoadingAllegroUrls] = useState<
@@ -272,6 +274,25 @@ const OwnStorePage = () => {
   };
 
   useEffect(() => {
+    const fetchUnlinkedCount = async () => {
+      try {
+        const response = await fetch("/api/products/unlinked-count");
+        if (response.ok) {
+          const data = await response.json();
+          setTotalUnlinkedCount(data.count || 0);
+        }
+      } catch (error) {
+        console.error(
+          "Błąd pobierania liczby niepowiązanych produktów:",
+          error
+        );
+      }
+    };
+
+    fetchUnlinkedCount();
+  }, [products]); // Odświeżaj po każdej zmianie produktów
+
+  useEffect(() => {
     const fetchManufacturers = async () => {
       const { fetchManufacturers } = useManufacturerStore.getState();
       await fetchManufacturers();
@@ -476,6 +497,7 @@ const OwnStorePage = () => {
     fetchProductsForAdmin,
     sortConfig,
     searchTerm,
+    showOnlyUnlinked,
   ]);
 
   useEffect(() => {
@@ -1992,17 +2014,7 @@ const OwnStorePage = () => {
             {showOnlyUnlinked ? (
               <>❌ Pokaż wszystkie</>
             ) : (
-              <>
-                🚫 Tylko bez Allegro (
-                {
-                  products.filter(
-                    (p) =>
-                      !p.matched_store_product &&
-                      !p.marketplaces?.allegro?.productId
-                  ).length
-                }
-                )
-              </>
+              <>🚫 Tylko bez Allegro ({totalUnlinkedCount})</>
             )}
           </Button>
 
@@ -2433,183 +2445,166 @@ const OwnStorePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {products
-                  .filter((product) => {
-                    // Filtr dla produktów bez powiązania
-                    if (showOnlyUnlinked) {
-                      return (
-                        !product.matched_store_product &&
-                        !product.marketplaces?.allegro?.productId
-                      );
-                    }
-                    return true;
-                  })
-                  .map((product) => (
-                    <tr
-                      key={product.id}
-                      className={`hover:bg-accent ${
-                        // Dodatkowo wyróżnij produkty bez powiązania czerwonym tłem
-                        !product.matched_store_product &&
-                        !product.marketplaces?.allegro?.productId
-                          ? "bg-red-50 dark:bg-red-900/20"
-                          : selectedProducts.includes(product.id || "")
-                          ? "bg-border"
-                          : ""
-                      }`}
+                {products.map((product) => (
+                  <tr
+                    key={product.id}
+                    className={`hover:bg-accent ${
+                      // Dodatkowo wyróżnij produkty bez powiązania czerwonym tłem
+                      !product.matched_store_product &&
+                      !product.marketplaces?.allegro?.productId
+                        ? "bg-red-50 dark:bg-red-900/20"
+                        : selectedProducts.includes(product.id || "")
+                        ? "bg-border"
+                        : ""
+                    }`}
+                  >
+                    <td className="w-10 px-2 sticky left-0 bg-background border-r z-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(product.id || "")}
+                        onChange={(e) => {
+                          const productId = product.id;
+                          if (!productId) return;
+
+                          if (e.target.checked) {
+                            setSelectedProducts([
+                              ...selectedProducts,
+                              productId,
+                            ]);
+                          } else {
+                            setSelectedProducts(
+                              selectedProducts.filter((id) => id !== productId)
+                            );
+                          }
+                        }}
+                      />
+                    </td>
+                    <td
+                      className={`px-4 py-3 sticky left-[40px] bg-background border-r z-10`}
                     >
-                      <td className="w-10 px-2 sticky left-0 bg-background border-r z-10">
-                        <input
-                          type="checkbox"
-                          checked={selectedProducts.includes(product.id || "")}
-                          onChange={(e) => {
-                            const productId = product.id;
-                            if (!productId) return;
+                      {renderCell(product, "name")}
+                    </td>
+                    <td
+                      className={`px-4 py-3 sticky left-[340px] bg-background border-r z-10`}
+                    >
+                      {renderCell(product, "mainImage")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "gallery")}
+                    </td>
+                    {/*<td className="px-4 py-3">{renderCell(product, 'slug')}</td>*/}
+                    <td className="px-4 py-3">
+                      {renderCell(product, "price")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "stock")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "power")}
+                    </td>
+                    <td className="px-4 py-3">{renderCell(product, "rpm")}</td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "condition")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "weight")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "mechanicalSize")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "shaftDiameter")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "sleeveDiameter")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "flangeBoltCircle")}{" "}
+                      {/* DODAJ TĘ LINIĘ */}
+                    </td>
 
-                            if (e.target.checked) {
-                              setSelectedProducts([
-                                ...selectedProducts,
-                                productId,
-                              ]);
-                            } else {
-                              setSelectedProducts(
-                                selectedProducts.filter(
-                                  (id) => id !== productId
-                                )
-                              );
-                            }
-                          }}
-                        />
-                      </td>
-                      <td
-                        className={`px-4 py-3 sticky left-[40px] bg-background border-r z-10`}
-                      >
-                        {renderCell(product, "name")}
-                      </td>
-                      <td
-                        className={`px-4 py-3 sticky left-[340px] bg-background border-r z-10`}
-                      >
-                        {renderCell(product, "mainImage")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "gallery")}
-                      </td>
-                      {/*<td className="px-4 py-3">{renderCell(product, 'slug')}</td>*/}
-                      <td className="px-4 py-3">
-                        {renderCell(product, "price")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "stock")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "power")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "rpm")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "condition")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "weight")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "mechanicalSize")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "shaftDiameter")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "sleeveDiameter")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "flangeBoltCircle")}{" "}
-                        {/* DODAJ TĘ LINIĘ */}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        {renderCell(product, "flangeSize")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "legSpacing")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "hasBreak")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "hasForeignCooling")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "startType")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "customParameters")}
-                      </td>
-                      {/*<td className="px-4 py-3">{renderCell(product, 'seo.title')}</td>*/}
-                      {/*<td className="px-4 py-3">{renderCell(product, 'seo.description')}</td>*/}
-                      {/*<td className="px-4 py-3">{renderCell(product, 'seo.keywords')}</td>*/}
-                      <td className="px-4 py-3">
-                        {renderCell(product, "dataSheet")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "manufacturer")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "categories")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderCell(product, "description")}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-2">
-                          {/*<Button
+                    <td className="px-4 py-3">
+                      {renderCell(product, "flangeSize")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "legSpacing")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "hasBreak")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "hasForeignCooling")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "startType")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "customParameters")}
+                    </td>
+                    {/*<td className="px-4 py-3">{renderCell(product, 'seo.title')}</td>*/}
+                    {/*<td className="px-4 py-3">{renderCell(product, 'seo.description')}</td>*/}
+                    {/*<td className="px-4 py-3">{renderCell(product, 'seo.keywords')}</td>*/}
+                    <td className="px-4 py-3">
+                      {renderCell(product, "dataSheet")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "manufacturer")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "categories")}
+                    </td>
+                    <td className="px-4 py-3">
+                      {renderCell(product, "description")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        {/*<Button
                           variant="ghost"
                           size="icon"
                           onClick={() => router.push(`/admin/products/${product._id}`)}
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>*/}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              const productId = product.id;
-                              if (!productId) return;
-                              handleDelete(productId);
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={
-                            product.id
-                              ? selectedProducts.includes(product.id)
-                              : false
-                          }
-                          onChange={(e) => {
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
                             const productId = product.id;
                             if (!productId) return;
-
-                            if (e.target.checked) {
-                              setSelectedProducts([
-                                ...selectedProducts,
-                                productId,
-                              ]);
-                            } else {
-                              setSelectedProducts(
-                                selectedProducts.filter(
-                                  (id) => id !== productId
-                                )
-                              );
-                            }
+                            handleDelete(productId);
                           }}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={
+                          product.id
+                            ? selectedProducts.includes(product.id)
+                            : false
+                        }
+                        onChange={(e) => {
+                          const productId = product.id;
+                          if (!productId) return;
+
+                          if (e.target.checked) {
+                            setSelectedProducts([
+                              ...selectedProducts,
+                              productId,
+                            ]);
+                          } else {
+                            setSelectedProducts(
+                              selectedProducts.filter((id) => id !== productId)
+                            );
+                          }
+                        }}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

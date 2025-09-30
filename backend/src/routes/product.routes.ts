@@ -15,6 +15,7 @@ const router = Router();
 const productController = new ProductController();
 
 // Najpierw routy statyczne i specyficzne
+router.get('/unlinked-count', productController.getUnlinkedCount);
 router.get('/admin', productController.getProductsForAdmin);
 router.post('/check-stock', productController.checkStock);
 router.put('/admin/:id', validateProductInput, productController.updateProduct);

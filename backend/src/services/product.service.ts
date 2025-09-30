@@ -708,6 +708,7 @@ export class ProductService {
     sortField?: string;
     sortDirection?: 'asc' | 'desc';
     search?: string;
+    unlinkedOnly?: boolean;
   }) {
     const queryBuilder = this.repository
       .createQueryBuilder('product')
@@ -716,6 +717,11 @@ export class ProductService {
         active: 'true',
       });
 
+    if (params.unlinkedOnly) {
+      queryBuilder
+        .andWhere('product.matched_store_product IS NULL')
+        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL");
+    }
     // Dodajemy sortowanie przed innymi operacjami
     if (params.sortField && params.sortDirection) {
       const direction = params.sortDirection.toUpperCase() as 'ASC' | 'DESC';
@@ -3634,5 +3640,26 @@ export class ProductService {
     }
 
     return adjustedPrice;
+  }
+
+  async getUnlinkedCount(): Promise<number> {
+    try {
+      const count = await this.repository
+        .createQueryBuilder('product')
+        .where('product.matched_store_product IS NULL')
+        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL")
+        // DODAJ TE SAME WARUNKI CO W TABELI!
+        .andWhere("product.marketplaces->'ownStore'->>'active' = 'true'")
+        .andWhere("product.marketplaces->'ownStore' IS NOT NULL")
+        .getCount();
+
+      console.log(
+        `Znaleziono ${count} niepowiązanych produktów AKTYWNYCH W SKLEPIE`
+      );
+      return count;
+    } catch (error) {
+      console.error('Błąd liczenia niepowiązanych produktów:', error);
+      throw error;
+    }
   }
 }

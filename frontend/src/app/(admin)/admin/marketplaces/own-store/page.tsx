@@ -143,12 +143,9 @@ const OwnStorePage = () => {
     });
 
     try {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://api.silniki-elektryczne.com.pl";
-      const response = await fetch(`${baseUrl}/api/allegro/unlinked-offers`);
+      // Używamy lokalnego API Route zamiast bezpośredniego zapytania do backendu
+      const response = await fetch("/api/allegro/unlinked-offers");
 
-      // Sprawdź czy odpowiedź jest JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         console.error("Odpowiedź nie jest JSON, otrzymano:", contentType);
@@ -158,7 +155,6 @@ const OwnStorePage = () => {
       const data = await response.json();
 
       if (data.success && data.data) {
-        // Filtruj oferty, które pasują do nazwy produktu
         const filteredOffers = data.data.filter((offer: any) => {
           const searchLower = product.name.toLowerCase();
           const offerLower = offer.name.toLowerCase();
@@ -182,19 +178,22 @@ const OwnStorePage = () => {
         allegroOffers: [],
         loading: false,
       }));
+
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać listy ofert z Allegro",
+        variant: "destructive",
+      });
     }
   };
 
-  // Funkcja powiązywania
   const linkProductToAllegro = async (allegroOfferId: string) => {
     if (!linkingModal.productId) return;
 
     try {
-      // ZMIANA - użyj prawidłowego URL backendu
-      const baseUrl =
-        process.env.API_URL || "https://api.silniki-elektryczne.com.pl";
+      // Używamy lokalnego API Route
       const response = await fetch(
-        `${baseUrl}/api/allegro/link-product/${linkingModal.productId}`,
+        `/api/allegro/link-product/${linkingModal.productId}`,
         {
           method: "POST",
           headers: {
@@ -229,11 +228,12 @@ const OwnStorePage = () => {
       } else {
         toast({
           title: "Błąd",
-          description: data.error,
+          description: data.error || "Nie udało się powiązać produktu",
           variant: "destructive",
         });
       }
     } catch (error) {
+      console.error("Błąd powiązywania:", error);
       toast({
         title: "Błąd",
         description: "Nie udało się powiązać produktu",

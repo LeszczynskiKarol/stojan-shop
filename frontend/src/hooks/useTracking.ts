@@ -42,14 +42,6 @@ export function useTracking() {
     if (typeof window === "undefined" || typeof window.gtag !== "function") {
       return;
     }
-
-    // Sprawdź czy mamy zgodę na reklamy
-    if (consentSettings.ad_storage === "granted") {
-      window.gtag("event", "conversion", {
-        send_to: "AW-988030143/KEWXCLKemJoaEL_JkNcD",
-        ...params,
-      });
-    }
   };
 
   const trackPurchase = (params: {

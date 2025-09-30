@@ -24,14 +24,6 @@ export default function CheckoutSuccessPage() {
   useEffect(() => {
     if (orderDetails) {
       if (consentSettings.ad_storage === "granted") {
-        // Konwersja Google Ads
-        window.gtag("event", "conversion", {
-          send_to: "AW-988030143/MXlzCNyahrcZEL_JkNcD",
-          value: orderDetails.total,
-          currency: "PLN",
-          transaction_id: orderDetails.orderNumber,
-        });
-
         // Wewnętrzne śledzenie konwersji
         trackConversion({
           value: orderDetails.total,
@@ -39,24 +31,6 @@ export default function CheckoutSuccessPage() {
           transaction_id: orderDetails.orderNumber,
         });
       }
-
-      // DataLayer push zawsze wysyłamy
-      window.dataLayer.push({ ecommerce: null });
-      window.dataLayer.push({
-        event: "purchase_success",
-        ecommerce: {
-          currency: "PLN",
-          transaction_id: orderDetails.id,
-          value: orderDetails.total,
-          shipping: orderDetails.shippingCost,
-          items: orderDetails.items.map((item) => ({
-            item_id: item.productId,
-            item_name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-          })),
-        },
-      });
     }
   }, [orderDetails, consentSettings]);
 

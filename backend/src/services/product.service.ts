@@ -486,56 +486,84 @@ export class ProductService {
         const powerMin = parseFloat(category.productFilters.powerRange.min);
         const powerMax = parseFloat(category.productFilters.powerRange.max);
 
-        const powerWhere = `
-        CASE
-          WHEN product.power->>'value' IS NULL OR product.power->>'value' = '' THEN false
-          WHEN product.power->>'value' ~ '^[0-9]+([.,][0-9]+)?(-[0-9]+([.,][0-9]+)?)?\\s*(kW)?$' THEN
-            CASE
-              WHEN product.power->>'value' LIKE '%/%' THEN
-                COALESCE(
-                  CAST(
-                    NULLIF(
-                      REGEXP_REPLACE(
-                        SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '/', 1), 
-                        '[^0-9.]', '', 'g'
-                      ), 
-                      ''
-                    ) AS DECIMAL
-                  ),
-                  0
-                ) = :powerMin
-              WHEN product.power->>'value' LIKE '%-%' THEN
-                COALESCE(
-                  CAST(
-                    NULLIF(
-                      REGEXP_REPLACE(
-                        SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '-', 1), 
-                        '[^0-9.]', '', 'g'
-                      ), 
-                      ''
-                    ) AS DECIMAL
-                  ),
-                  0
-                ) = :powerMin
-              ELSE
-                COALESCE(
-                  CAST(
-                    NULLIF(
-                      REGEXP_REPLACE(
-                        REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), 
-                        '[^0-9.]', '', 'g'
-                      ), 
-                      ''
-                    ) AS DECIMAL
-                  ),
-                  0
-                ) = :powerMin
-            END
-          ELSE false
-        END`;
+        // ✅ DODAJ TEN WARUNEK - jeśli min/max są puste/NaN, pomiń filtr
+        if (
+          !isNaN(powerMin) &&
+          !isNaN(powerMax) &&
+          powerMin > 0 &&
+          powerMax > 0
+        ) {
+          const powerWhere = `
+    CASE
+      WHEN product.power->>'value' IS NULL OR product.power->>'value' = '' THEN false
+      WHEN product.power->>'value' ~ '^[0-9]+([.,][0-9]+)?(/[0-9]+([.,][0-9]+)?)?(-[0-9]+([.,][0-9]+)?)?\\s*(kW)?$' THEN
+        (
+          CASE
+            WHEN product.power->>'value' LIKE '%/%' THEN
+              CAST(
+                NULLIF(
+                  REGEXP_REPLACE(
+                    SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '/', 1), 
+                    '[^0-9.]', '', 'g'
+                  ), 
+                  ''
+                ) AS DECIMAL
+              )
+            WHEN product.power->>'value' LIKE '%-%' THEN
+              CAST(
+                NULLIF(
+                  REGEXP_REPLACE(
+                    SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '-', 1), 
+                    '[^0-9.]', '', 'g'
+                  ), 
+                  ''
+                ) AS DECIMAL
+              )
+            ELSE
+              CAST(
+                NULLIF(
+                  REGEXP_REPLACE(
+                    REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), 
+                    '[^0-9.]', '', 'g'
+                  ), 
+                  ''
+                ) AS DECIMAL
+              )
+          END BETWEEN :powerMin AND :powerMax
+          
+          OR
+          
+          CASE
+            WHEN product.power->>'value' LIKE '%/%' THEN
+              CAST(
+                NULLIF(
+                  REGEXP_REPLACE(
+                    SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '/', 2), 
+                    '[^0-9.]', '', 'g'
+                  ), 
+                  ''
+                ) AS DECIMAL
+              )
+            WHEN product.power->>'value' LIKE '%-%' THEN
+              CAST(
+                NULLIF(
+                  REGEXP_REPLACE(
+                    SPLIT_PART(REPLACE(REPLACE(product.power->>'value', ' kW', ''), ',', '.'), '-', 2), 
+                    '[^0-9.]', '', 'g'
+                  ), 
+                  ''
+                ) AS DECIMAL
+              )
+            ELSE NULL
+          END BETWEEN :powerMin AND :powerMax
+        )
+      ELSE false
+    END`;
 
-        queryBuilder.andWhere(powerWhere, { powerMin });
-        totalQuery.andWhere(powerWhere, { powerMin });
+          queryBuilder.andWhere(powerWhere, { powerMin, powerMax });
+          totalQuery.andWhere(powerWhere, { powerMin, powerMax });
+        }
+        // ✅ Jeśli min/max są NaN lub 0, ten blok się nie wykona = brak filtra mocy
       }
 
       // Reszta filtrów pozostaje bez zmian
@@ -688,6 +716,15 @@ export class ProductService {
         }
 
         return product;
+      });
+
+      console.log('🔍 getProductsByCategory debug:', {
+        categoryId,
+        categoryName: category?.name,
+        productsFound: products.length,
+        total,
+        filters,
+        query: queryBuilder.getSql(), // Zobacz dokładne SQL
       });
 
       return {
@@ -2796,6 +2833,26 @@ export class ProductService {
       queryBuilder.andWhere('category.id = :categoryId', {
         categoryId: filters.categoryId,
       });
+
+      // ✅ DODAJ TO - pobierz kategorię i sprawdź czy ma specificCategories
+      const category = await this.categoryRepository.findOne({
+        where: { id: filters.categoryId },
+      });
+
+      if (category?.productFilters?.specificCategories?.length) {
+        queryBuilder
+          .andWhere((qb) => {
+            const subQuery = qb
+              .subQuery()
+              .select('p.id')
+              .from(Product, 'p')
+              .leftJoin('p.categories', 'c')
+              .where('c.slug IN (:...slugs)')
+              .getQuery();
+            return `product.id IN ${subQuery}`;
+          })
+          .setParameter('slugs', category.productFilters.specificCategories);
+      }
     }
 
     // Producent

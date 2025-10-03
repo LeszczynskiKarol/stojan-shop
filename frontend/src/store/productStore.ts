@@ -840,7 +840,30 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     } else {
       // Tylko aktualizacja lokalnego produktu
       console.log("ℹ️ Pominięto synchronizację z Allegro");
-      return await api.patch(`/products`, { id: productId, stock: newStock });
+
+      // Znajdź produkt do aktualizacji
+      const productToUpdate = updatedProducts.find(
+        (p) => p.id === productId || p._id === productId
+      );
+
+      if (!productToUpdate) {
+        throw new Error("Nie znaleziono produktu do aktualizacji");
+      }
+
+      // Użyj prawidłowej metody API z WSZYSTKIMI wymaganymi danymi
+      return await productAPI.update(productId, {
+        name: productToUpdate.name,
+        manufacturer: productToUpdate.manufacturer,
+        condition: productToUpdate.condition,
+        stock: newStock,
+        weight: productToUpdate.weight || 0,
+        power: productToUpdate.power,
+        rpm: productToUpdate.rpm,
+        shaftDiameter: productToUpdate.shaftDiameter,
+        mechanicalSize: productToUpdate.mechanicalSize,
+        marketplaces: productToUpdate.marketplaces,
+        categories: productToUpdate.categories || [],
+      });
     }
   },
 

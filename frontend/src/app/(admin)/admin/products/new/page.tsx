@@ -66,11 +66,11 @@ export default function NewProductPage() {
         return;
       }
 
-      // Walidacja stanu magazynowego - minimum 1 sztuka
-      if (!data.stock || Number(data.stock) < 1) {
+      // Walidacja stanu magazynowego - wymagane, ale może być 0
+      if (data.stock === undefined || data.stock === null) {
         toast({
           title: "Błąd walidacji",
-          description: "Stan magazynowy musi wynosić co najmniej 1",
+          description: "Stan magazynowy jest wymagany",
           variant: "destructive",
         });
         setIsUploading(false);

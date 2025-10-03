@@ -531,7 +531,9 @@ export function ProductForm({
               {...register("power.value")}
               type="text"
               onChange={(e) => {
-                const formatted = e.target.value.replace(/\./g, ",");
+                const formatted = e.target.value
+                  .replace(/\./g, ",")
+                  .replace(/\//g, "-");
                 setValue("power.value", formatted);
               }}
             />
@@ -597,18 +599,26 @@ export function ProductForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Rozstaw łap [mm x mm]</label>
-            <Input
-              {...register("legSpacing")}
-              type="text"
-              placeholder="np. 100 x 100"
-              onChange={(e) => {
-                // Formatowanie na wzór "liczba x liczba"
-                const value = e.target.value;
-                if (value && !value.includes("x") && !isNaN(parseInt(value))) {
-                  setValue("legSpacing", `${value} x ${value}`);
-                }
-              }}
-            />
+            <div className="flex gap-2">
+              <Input
+                {...register("legSpacing")}
+                type="text"
+                placeholder="np. 100 x 100"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const current = watch("legSpacing") || "";
+                  setValue("legSpacing", current + " x ");
+                }}
+                className="px-3"
+              >
+                x
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               Format: szerokość x długość
             </p>

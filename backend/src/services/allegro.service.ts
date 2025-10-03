@@ -604,15 +604,6 @@ export class AllegroService {
         (p: AllegroParameter) => p.id === '219145'
       );
 
-      // Dodaj brakujące parametry
-      if (!hasModel) {
-        allegroOffer.productSet[0].product.parameters.push({
-          id: '237206',
-          name: 'Model',
-          values: [`Silnik-${Math.floor(Math.random() * 10000)}`],
-        });
-      }
-
       // Dla typu silnika sprawdź czy należy użyć jednofazowy
       if (
         !hasEngineType &&

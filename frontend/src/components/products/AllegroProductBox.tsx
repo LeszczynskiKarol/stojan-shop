@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { ImageUpload } from "@/components/shared/ImageUpload";
+import Image from "next/image";
+import { X } from "lucide-react";
+import { getManufacturerId } from "@/utils/allegroManufacturers";
 
 interface AllegroProductBoxProps {
   // Opcjonalnie możesz przekazać dane z górnego formularza
@@ -30,6 +34,7 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
   // Dane specyficzne dla Allegro
   const [allegroName, setAllegroName] = useState(productData?.name || "");
   const [allegroPrice, setAllegroPrice] = useState("");
+  const [manufacturerCode, setManufacturerCode] = useState("");
   const [allegroStock, setAllegroStock] = useState("1");
   const [allegroDescription, setAllegroDescription] = useState("");
 
@@ -74,6 +79,16 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
       return;
     }
 
+    // DODAJ WALIDACJĘ MOCY I OBROTÓW
+    if (!power || !rpm || !weight) {
+      toast({
+        title: "Błąd walidacji",
+        description: "Moc, obroty i waga są wymagane",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -103,16 +118,41 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
 
       if (categoryId === "121452") {
         // MOTOREDUKTORY
+        const powerKw = parseFloat(power) || 0;
+        const powerInWatts = Math.round(powerKw * 1000);
+
+        if (powerInWatts > 50000) {
+          toast({
+            title: "Błąd",
+            description: "Moc przekracza limit 50 kW dla motoreduktorów",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // UŻYJ FUNKCJI getManufacturerId():
+        const manufacturerData = getManufacturerId(manufacturer);
+
         productParameters = [
-          { id: "11726", name: "Moc znamionowa", values: [power] },
+          {
+            id: "11726",
+            name: "Moc znamionowa",
+            values: [powerInWatts.toString()],
+          },
           { id: "221421", name: "Prędkość obrotowa", values: [rpm] },
           { id: "214694", name: "Waga", values: [weight] },
+          ...(model ? [{ id: "237206", name: "Model", values: [model] }] : []),
           {
-            id: "237206",
-            name: "Model",
+            id: "224017",
+            name: "Kod producenta",
             values: [model || `MR-${Date.now()}`],
           },
-          { id: "248929", name: "Marka", values: [manufacturer || "STOJAN"] },
+          {
+            id: "248811",
+            name: "Marka",
+            values: [manufacturerData.value], // Nazwa producenta
+            valuesIds: [manufacturerData.id], // ID z Allegro
+          },
           {
             id: "18654",
             name: "Rodzaj motoreduktora",
@@ -122,13 +162,27 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
         ];
       } else {
         // SILNIKI
+        // UŻYJ FUNKCJI getManufacturerId():
+        const manufacturerData = getManufacturerId(manufacturer);
+
         productParameters = [
           { id: "219137", name: "Moc", values: [power] },
           { id: "219153", name: "Obroty", values: [rpm] },
           { id: "214478", name: "Waga", values: [weight] },
           { id: "219149", name: "Średnica wału", values: [shaftDiameter] },
-          { id: "237206", name: "Model", values: [model || `S-${Date.now()}`] },
-          { id: "248811", name: "Marka", values: [manufacturer || "STOJAN"] },
+          // ZMIEŃ TĘ LINIĘ - Model TYLKO jeśli wypełniony:
+          ...(model ? [{ id: "237206", name: "Model", values: [model] }] : []),
+          {
+            id: "224017",
+            name: "Kod producenta",
+            values: [model || `S-${Date.now()}`], // Kod producenta MUSI być
+          },
+          {
+            id: "248811",
+            name: "Marka",
+            values: [manufacturerData.value],
+            valuesIds: [manufacturerData.id],
+          },
           {
             id: "219157",
             name: "Rodzaj silnika",
@@ -169,14 +223,35 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
         description: {
           sections: [
             {
-              items: [
-                {
-                  type: "TEXT",
-                  content:
-                    allegroDescription ||
-                    `<h1>${allegroName}</h1><p>${power}kW ${rpm}obr.</p>`,
-                },
-              ],
+              items: allegroDescription
+                ? [
+                    // Tekst jako pierwszy item
+                    {
+                      type: "TEXT",
+                      content:
+                        `<h2>${allegroName}</h2>` +
+                        allegroDescription
+                          .split("\n")
+                          .filter((line) => line.trim())
+                          .map((line) => `<p>${line.trim()}</p>`)
+                          .join(""),
+                    },
+                    // Obrazek jako drugi item
+                    ...(images[0]
+                      ? [
+                          {
+                            type: "IMAGE",
+                            url: images[0],
+                          },
+                        ]
+                      : []),
+                  ]
+                : [
+                    {
+                      type: "TEXT",
+                      content: `<h1>${allegroName}</h1><p>Moc: ${power}kW, Obroty: ${rpm}obr/min</p>`,
+                    },
+                  ],
             },
           ],
         },
@@ -235,13 +310,43 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
     }
   };
 
+  const handleImageUpload = async (files: FileList) => {
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => {
+        formData.append("images", file);
+      });
+
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const response = await fetch(`${baseUrl}/api/uploads/products`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success && data.data.urls) {
+        setImages([...images, ...data.data.urls]);
+      }
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się przesłać zdjęć",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
   return (
-    <Card className="p-6 border-2 border-orange-500 bg-orange-50">
+    <Card className="p-6 border-2 border-orange-500 bg-orange-50 dark:bg-orange-950 dark:border-orange-700">
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-orange-800">
+        <h2 className="text-xl font-bold text-orange-800 dark:text-orange-200">
           📦 Dodaj ten sam produkt NA ALLEGRO
         </h2>
-        <p className="text-sm text-orange-600">
+        <p className="text-sm text-orange-600 dark:text-orange-400">
           Osobny panel tylko do Allegro - wypełnij wymagane pola
         </p>
       </div>
@@ -327,8 +432,24 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
             <Input
               value={manufacturer}
               onChange={(e) => setManufacturer(e.target.value)}
-              placeholder="np. SEW"
+              placeholder="np. SEW (lub zostaw puste = 'bez marki')"
             />
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Pozostaw puste aby użyć "bez marki"
+            </span>
+          </div>
+
+          {/* MODEL */}
+          <div>
+            <label className="text-sm font-medium">Model</label>
+            <Input
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder="np. DRS71M4"
+            />
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Opcjonalnie - identyfikator modelu
+            </span>
           </div>
 
           {/* Stan */}
@@ -370,6 +491,36 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
           </div>
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Zdjęcia produktu *</label>
+          <div className="grid grid-cols-4 gap-4">
+            {images.map((url, index) => (
+              <div key={url} className="relative group">
+                <Image
+                  src={url}
+                  alt={`Zdjęcie ${index + 1}`}
+                  width={150}
+                  height={150}
+                  className="w-full h-32 object-cover rounded-lg"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 h-6 w-6"
+                  onClick={() => handleRemoveImage(index)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+            <ImageUpload onUpload={handleImageUpload} />
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {images.length} zdjęć dodanych
+          </p>
+        </div>
+
         {/* Opis */}
         <div>
           <label className="text-sm font-medium">Opis Allegro</label>
@@ -392,7 +543,7 @@ export function AllegroProductBox({ productData }: AllegroProductBoxProps) {
           </Button>
         </div>
 
-        <p className="text-xs text-gray-600">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           ⚠️ Ten produkt zostanie dodany TYLKO na Allegro, NIE do własnego
           sklepu
         </p>

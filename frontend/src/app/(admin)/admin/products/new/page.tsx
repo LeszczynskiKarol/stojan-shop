@@ -1,4 +1,4 @@
-// frontend/src/app/(admin)/admin/products/new/page.tsx
+// frontend/src/app/(admin)/admin/products/new/page.tsx - NOWA WERSJA
 "use client";
 import React from "react";
 import { useState, useEffect } from "react";
@@ -164,7 +164,6 @@ export default function NewProductPage() {
 
       setTimeout(() => {
         localStorage.removeItem("product_form_draft");
-        window.location.href = "/admin/marketplaces/own-store";
       }, 2000); // Zwiększamy timeout do 2 sekund dla lepszej widoczności toastów
     } catch (error: any) {
       console.error("❌ [DEBUG] Główny błąd:", error);
@@ -189,10 +188,10 @@ export default function NewProductPage() {
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Dodaj nowy produkt</h1>
+
       <ProductForm onSubmit={handleSubmit} isUploadingImages={isUploading} />
-      <div className="mt-8">
-        <AllegroProductBox />
-      </div>
+      <AllegroProductBox />
+      <div className="mt-8"></div>
     </div>
   );
 }

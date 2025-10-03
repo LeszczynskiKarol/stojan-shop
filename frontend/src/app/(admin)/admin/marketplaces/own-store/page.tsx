@@ -1076,10 +1076,12 @@ const OwnStorePage = () => {
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
                 <span>Brak Allegro</span>
-                {!product.matched_store_product && (
+                {(!product.matched_store_product ||
+                  (product.matched_store_product &&
+                    !product.marketplaces?.allegro?.productId)) && (
                   <button
                     onClick={(e) => {
-                      e.stopPropagation(); // Zapobiega otwarciu edycji
+                      e.stopPropagation();
                       openLinkingModal(product);
                     }}
                     className="text-xs text-blue-500 hover:text-blue-600 underline mt-1"

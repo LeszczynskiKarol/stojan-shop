@@ -39,12 +39,16 @@ interface ProductFormProps {
   onSubmit: (data: ProductFormData) => void;
   initialData?: Partial<ProductFormData>;
   isUploadingImages?: boolean;
+  addToAllegro?: boolean; // DODAJ
+  setAddToAllegro?: (value: boolean) => void; // DODAJ
 }
 
 export function ProductForm({
   onSubmit,
   initialData,
   isUploadingImages = false,
+  addToAllegro,
+  setAddToAllegro,
 }: ProductFormProps) {
   const [selectedGeneralCategory, setSelectedGeneralCategory] =
     useState<string>("");
@@ -68,24 +72,24 @@ export function ProductForm({
 
   const FORM_STORAGE_KEY = "product_form_draft";
 
-  const includedCategoryWords = [
-    "trójfazowe",
-    "jednofazowe",
-    "dwubiegow",
-    "motoreduktory",
-    "akcesoria",
-    "pierścieniowe",
-    "wentylator",
-    "hamul",
-    "pompy",
-  ];
+  const [allegroModel, setAllegroModel] = useState("");
+  const [allegroDescription, setAllegroDescription] = useState("");
 
-  const shouldShowCategory = (categoryName: string): boolean => {
-    return includedCategoryWords.some((word) =>
-      categoryName.toLowerCase().includes(word.toLowerCase())
-    );
+  const isAllegroSupportedCategory = () => {
+    const supportedSlugs = [
+      "silniki-elektryczne",
+      "jednofazowe",
+      "trojfazowe",
+      "dwubiegowe",
+      "pierscieniowe",
+      "z-hamulcem",
+      "motoreduktory",
+    ];
+
+    const isSupported = supportedSlugs.includes(selectedGeneralCategory);
+
+    return isSupported;
   };
-
   const handleDataSheetUpload = async (files: FileList) => {
     try {
       const formData = new FormData();
@@ -409,6 +413,8 @@ export function ProductForm({
             ...data.rpm,
             value: formatValue(data.rpm?.value || ""),
           },
+          model: allegroModel,
+          allegroDescription: allegroDescription,
         };
 
         clearFormStorage();
@@ -832,6 +838,110 @@ export function ProductForm({
                     </span>
                   )}
                 </div>
+
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    {/* Sprawdzenie czy kategoria jest obsługiwana */}
+                    {!isAllegroSupportedCategory() ? (
+                      <div className="p-4 rounded-lg">
+                        <p className="text-sm text-yellow-800 font-medium">
+                          ⚠️ Dodawanie na Allegro jest dostępne tylko dla
+                          kategorii:
+                        </p>
+                        <ul className="mt-2 text-sm text-yellow-700 list-disc list-inside">
+                          <li>Silniki elektryczne (wszystkie podkategorie)</li>
+                          <li>Motoreduktory</li>
+                        </ul>
+                        <p className="mt-2 text-xs text-yellow-600">
+                          Wybierz jedną z tych kategorii głównych, aby móc dodać
+                          produkt na Allegro.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="addToAllegro"
+                            checked={addToAllegro}
+                            onChange={(e) =>
+                              setAddToAllegro?.(e.target.checked)
+                            }
+                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded mr-2"
+                          />
+                          <label
+                            htmlFor="addToAllegro"
+                            className="font-medium text-sm"
+                          >
+                            Dodaj produkt bezpośrednio na Allegro
+                          </label>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          Gdy opcja jest odznaczona, produkt będzie dostępny
+                          tylko w Twoim sklepie i nie zostanie automatycznie
+                          dodany na Allegro.
+                        </p>
+
+                        {/* POLA ALLEGRO */}
+                        {addToAllegro && (
+                          <div className="space-y-4 border-t pt-4">
+                            {/* Cena Allegro */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Cena w Allegro [PLN]
+                              </label>
+                              <Input
+                                {...register("marketplaces.allegro.price")}
+                                type="number"
+                                step="0.01"
+                                placeholder="Cena w Allegro (opcjonalnie - jeśli inna niż w sklepie)"
+                              />
+                              <p className="text-sm text-gray-500">
+                                Jeśli nie podasz ceny dla Allegro, zostanie
+                                użyta cena ze sklepu.
+                              </p>
+                            </div>
+
+                            {/* Opis Allegro */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Opis dla Allegro (opcjonalnie)
+                              </label>
+                              <Textarea
+                                value={allegroDescription}
+                                onChange={(e) =>
+                                  setAllegroDescription(e.target.value)
+                                }
+                                rows={4}
+                                placeholder="Jeśli puste, użyje głównego opisu produktu"
+                              />
+                              <p className="text-sm text-gray-500">
+                                Domyślnie użyty zostanie główny opis produktu
+                              </p>
+                            </div>
+
+                            {/* Model */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">
+                                Model (opcjonalnie)
+                              </label>
+                              <Input
+                                value={allegroModel}
+                                onChange={(e) =>
+                                  setAllegroModel(e.target.value)
+                                }
+                                placeholder="np. DRS71M4"
+                              />
+                              <p className="text-sm text-gray-500">
+                                Pozostaw puste jeśli nie znasz modelu
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Card>
               </div>
               {/* Opis produktu */}
               <div className="space-y-2">

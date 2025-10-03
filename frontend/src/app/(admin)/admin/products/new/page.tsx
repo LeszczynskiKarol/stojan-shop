@@ -1,26 +1,23 @@
-// frontend/src/app/(admin)/admin/products/new/page.tsx - NOWA WERSJA
+// frontend/src/app/(admin)/admin/products/new/page.tsx
 "use client";
 import React from "react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { ProductForm } from "@/components/products/ProductForm";
-import { AllegroProductBox } from "@/components/products/AllegroProductBox";
 import { useProductStore } from "@/store/productStore";
 import { useManufacturerStore } from "@/store/manufacturerStore";
 import { IManufacturer } from "@/types/manufacturer.types";
+import { getManufacturerId } from "@/utils/allegroManufacturers";
 
 export default function NewProductPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { createProduct } = useProductStore();
   const [manufacturers, setManufacturers] = useState<IManufacturer[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [addToAllegro, setAddToAllegro] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem("product_form_draft");
-
-    // Dodatkowo czyszczenie przy odmontowaniu
     return () => {
       localStorage.removeItem("product_form_draft");
     };
@@ -33,28 +30,23 @@ export default function NewProductPage() {
       const manufacturersList = useManufacturerStore.getState().manufacturers;
       setManufacturers(manufacturersList);
     };
-
     fetchManufacturers();
   }, []);
 
   const handleSubmit = async (data: any) => {
     try {
       setIsUploading(true);
-      console.log("🚀 [DEBUG] Rozpoczynam dodawanie produktu");
-      console.log("🚀 [DEBUG] Dane wejściowe:", data);
 
       if (!data.name || data.name.length < 12) {
         toast({
           title: "Błąd walidacji",
-          description:
-            "Nazwa produktu musi mieć co najmniej 12 znaków - tego wymaga Allegro",
+          description: "Nazwa musi mieć min. 12 znaków",
           variant: "destructive",
         });
         setIsUploading(false);
         return;
       }
 
-      // Walidacja zdjęcia głównego - musi być dodane
       if (!data.mainImage) {
         toast({
           title: "Błąd walidacji",
@@ -65,7 +57,6 @@ export default function NewProductPage() {
         return;
       }
 
-      // Walidacja stanu magazynowego - wymagane, ale może być 0
       if (data.stock === undefined || data.stock === null) {
         toast({
           title: "Błąd walidacji",
@@ -76,21 +67,8 @@ export default function NewProductPage() {
         return;
       }
 
-      if (
-        data.legSpacing === "" ||
-        data.legSpacing === undefined ||
-        data.legSpacing === null
-      ) {
-        data.legSpacing = null; // Ustawiamy na null zamiast pustego stringa
-      } else if (!data.legSpacing.includes("x")) {
-        // Jeśli użytkownik podał tylko jedną wartość bez 'x', formatujemy jako "wartość x wartość"
-        data.legSpacing = `${data.legSpacing} x ${data.legSpacing}`;
-      }
-
-      // Sprawdzamy i ustawiamy producenta
+      // Przetwarzanie producenta
       let manufacturerName = data.manufacturer?.trim() || "silnik";
-
-      // Próba znalezienia istniejącego producenta
       const existingManufacturer = manufacturers.find(
         (m) => m.name.toLowerCase() === manufacturerName.toLowerCase()
       );
@@ -106,17 +84,13 @@ export default function NewProductPage() {
             images: [],
           });
         } catch (err) {
-          console.error("Błąd podczas tworzenia producenta:", err);
-          // Jeśli nie udało się utworzyć producenta, używamy domyślnego
           manufacturerName = "silnik";
         }
       }
 
-      // Reszta przetwarzania danych
       const processedData = {
         ...data,
-        startType: data.startType || null,
-        manufacturer: manufacturerName, // Ustawiamy przetworzoną nazwę producenta
+        manufacturer: manufacturerName,
         categories: data.categories || [],
         price: Number(data.marketplaces?.ownStore?.price) || 0,
         shaftDiameter: Number(data.shaftDiameter) || 0,
@@ -124,24 +98,9 @@ export default function NewProductPage() {
           ? Number(data.sleeveDiameter)
           : undefined,
         flangeSize: data.flangeSize ? Number(data.flangeSize) : undefined,
-        flangeBoltCircle: data.flangeBoltCircle
-          ? Number(data.flangeBoltCircle)
-          : undefined,
         mechanicalSize: Number(data.mechanicalSize) || 0,
         stock: Number(data.stock) || 0,
         weight: Number(data.weight) || 0,
-        images: data.images || [],
-        mainImage: data.mainImage,
-        galleryImages: data.galleryImages || [],
-        dataSheets: data.dataSheets || [],
-        power: {
-          value: data.power?.value || "",
-          range: data.power?.range || "",
-        },
-        rpm: {
-          value: data.rpm?.value || "",
-          range: data.rpm?.range || "",
-        },
         marketplaces: {
           ownStore: {
             active: true,
@@ -151,47 +110,236 @@ export default function NewProductPage() {
         },
       };
 
+      // DODAWANIE NA ALLEGRO
+      if (addToAllegro) {
+        const cennikSmartDlaWagi = [
+          { maxWaga: 1, id: "6c97494e-b06e-463e-8cf5-d36750d2ca31" },
+          { maxWaga: 4, id: "38161cbb-1386-4f17-96e3-4fae1f6de5ee" },
+          { maxWaga: 5, id: "5720f29c-89d2-4b8a-8e5b-4bc05d03ced4" },
+          { maxWaga: 9, id: "28c0b642-2c0c-4b12-8e07-8116fd33f716" },
+          { maxWaga: 13, id: "4225471b-4ca3-4a41-8af0-08a8bd8d0622" },
+          { maxWaga: 18, id: "8ac507c5-5868-4f17-91cc-b76addadb954" },
+          { maxWaga: 22, id: "452b15db-1f8b-4f16-b7cc-c882b7d8f4af" },
+          { maxWaga: 27.5, id: "f1570290-5db6-4614-bc16-0aeddbccd58f" },
+          { maxWaga: 30, id: "592aba1b-5240-4589-8118-dd9d22306e66" },
+          { maxWaga: Infinity, id: "aa79662f-56d6-4f98-89c5-c960482c2c5f" },
+        ];
+
+        const wybierzCennik = (waga: number) => {
+          const cennik = cennikSmartDlaWagi.find((c) => waga <= c.maxWaga);
+          return (
+            cennik?.id || cennikSmartDlaWagi[cennikSmartDlaWagi.length - 1].id
+          );
+        };
+
+        let categoryId = "121456";
+        let productParameters = [];
+
+        if (data.categories?.some((cat: any) => cat.slug === "motoreduktory")) {
+          categoryId = "121452";
+          const powerKw = parseFloat(
+            data.power?.value?.replace(",", ".") || "0"
+          );
+          const powerInWatts = Math.round(powerKw * 1000);
+          const manufacturerData = getManufacturerId(data.manufacturer);
+
+          productParameters = [
+            {
+              id: "11726",
+              name: "Moc znamionowa",
+              values: [powerInWatts.toString()],
+            },
+            {
+              id: "221421",
+              name: "Prędkość obrotowa",
+              values: [data.rpm?.value || "0"],
+            },
+            {
+              id: "214694",
+              name: "Waga",
+              values: [data.weight?.toString() || "0"],
+            },
+            ...(data.model
+              ? [{ id: "237206", name: "Model", values: [data.model] }]
+              : []),
+            {
+              id: "224017",
+              name: "Kod producenta",
+              values: [data.model || `MR-${Date.now()}`],
+            },
+            {
+              id: "248811",
+              name: "Marka",
+              values: [manufacturerData.value],
+              valuesIds: [manufacturerData.id],
+            },
+            {
+              id: "18654",
+              name: "Rodzaj motoreduktora",
+              values: ["walcowy"],
+              valuesIds: ["18654_1"],
+            },
+          ];
+        } else {
+          const manufacturerData = getManufacturerId(data.manufacturer);
+
+          productParameters = [
+            { id: "219137", name: "Moc", values: [data.power?.value || "0"] },
+            { id: "219153", name: "Obroty", values: [data.rpm?.value || "0"] },
+            {
+              id: "214478",
+              name: "Waga",
+              values: [data.weight?.toString() || "0"],
+            },
+            {
+              id: "219149",
+              name: "Średnica wału",
+              values: [data.shaftDiameter?.toString() || "0"],
+            },
+            ...(data.model
+              ? [{ id: "237206", name: "Model", values: [data.model] }]
+              : []),
+            {
+              id: "224017",
+              name: "Kod producenta",
+              values: [data.model || `S-${Date.now()}`],
+            },
+            {
+              id: "248811",
+              name: "Marka",
+              values: [manufacturerData.value],
+              valuesIds: [manufacturerData.id],
+            },
+            {
+              id: "219157",
+              name: "Rodzaj silnika",
+              values: ["elektryczny"],
+              valuesIds: ["219157_284941"],
+            },
+          ];
+        }
+
+        const allegroPrice =
+          Number(
+            data.marketplaces?.allegro?.price ||
+              data.marketplaces?.ownStore?.price
+          ) || 0;
+
+        const allegroOffer = {
+          name: data.name,
+          productSet: [
+            {
+              product: {
+                name: data.name,
+                images: [data.mainImage, ...(data.galleryImages || [])],
+                parameters: productParameters,
+              },
+            },
+          ],
+          parameters: [
+            {
+              id: "11323",
+              name: "Stan",
+              values: [data.condition === "uzywany" ? "Używany" : "Nowy"],
+              valuesIds: [data.condition === "uzywany" ? "11323_2" : "11323_1"],
+            },
+          ],
+          images: [data.mainImage, ...(data.galleryImages || [])],
+          category: { id: categoryId },
+          location: {
+            city: "Łubianka",
+            postCode: "87-152",
+            countryCode: "PL",
+            province: "KUJAWSKO_POMORSKIE",
+          },
+          description: {
+            sections: [
+              {
+                items: [
+                  {
+                    type: "TEXT",
+                    content:
+                      `<h2>${data.name}</h2>` +
+                      (data.allegroDescription || data.description || "")
+                        .split("\n")
+                        .filter((line: string) => line.trim())
+                        .map((line: string) => `<p>${line.trim()}</p>`)
+                        .join(""),
+                  },
+                  ...(data.mainImage
+                    ? [{ type: "IMAGE", url: data.mainImage }]
+                    : []),
+                ],
+              },
+            ],
+          },
+          delivery: {
+            handlingTime: "PT24H",
+            shippingRates: { id: wybierzCennik(Number(data.weight) || 0) },
+          },
+          sellingMode: {
+            format: "BUY_NOW",
+            price: { amount: allegroPrice.toString(), currency: "PLN" },
+          },
+          stock: { available: data.stock > 0 ? data.stock : 1, unit: "UNIT" },
+        };
+
+        const allegroResponse = await fetch("/api/admin/allegro/offers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(allegroOffer),
+        });
+
+        const allegroData = await allegroResponse.json();
+
+        if (!allegroResponse.ok) {
+          throw new Error(allegroData?.error || "Błąd Allegro");
+        }
+
+        if (allegroData?.data?.id) {
+          processedData.marketplaces.allegro = {
+            active: true,
+            productId: allegroData.data.id,
+            url: `https://allegro.pl/oferta/${allegroData.data.id}`,
+            price: allegroPrice,
+          };
+        }
+      }
+
       await createProduct(processedData);
 
-      console.log("✅ [DEBUG] Produkt zapisany pomyślnie");
-
-      sessionStorage.setItem("block_form_saving", "true");
-      localStorage.removeItem("product_form_draft");
-
       toast({
-        title: "Produkt został dodany do sklepu",
+        title: "Sukces!",
+        description: addToAllegro
+          ? "Produkt dodany do sklepu i na Allegro"
+          : "Produkt dodany do sklepu",
       });
 
       setTimeout(() => {
         localStorage.removeItem("product_form_draft");
-      }, 2000); // Zwiększamy timeout do 2 sekund dla lepszej widoczności toastów
+        window.location.href = "/admin/marketplaces/own-store";
+      }, 2000);
     } catch (error: any) {
-      console.error("❌ [DEBUG] Główny błąd:", error);
-      console.error("❌ [DEBUG] Stack trace:", error.stack);
-
       toast({
         title: "Błąd",
-        description: error.message || "Nie udało się dodać produktu",
+        description: error.message,
         variant: "destructive",
-        duration: 10000, // Dłuższy czas dla błędów
+        duration: 10000,
       });
     } finally {
       setIsUploading(false);
-      console.log("🏁 [DEBUG] Zakończono proces dodawania produktu");
     }
   };
-
-  useEffect(() => {
-    localStorage.removeItem("product_form_draft");
-  }, []);
 
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Dodaj nowy produkt</h1>
-
-      <ProductForm onSubmit={handleSubmit} isUploadingImages={isUploading} />
-      <AllegroProductBox />
-      <div className="mt-8"></div>
+      <ProductForm
+        onSubmit={handleSubmit}
+        isUploadingImages={isUploading}
+        addToAllegro={addToAllegro}
+        setAddToAllegro={setAddToAllegro}
+      />
     </div>
   );
 }

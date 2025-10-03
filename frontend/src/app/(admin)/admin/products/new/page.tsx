@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { ProductForm } from "@/components/products/ProductForm";
+import { AllegroProductBox } from "@/components/products/AllegroProductBox";
 import { useProductStore } from "@/store/productStore";
 import { useManufacturerStore } from "@/store/manufacturerStore";
 import { IManufacturer } from "@/types/manufacturer.types";
@@ -15,7 +16,6 @@ export default function NewProductPage() {
   const { createProduct } = useProductStore();
   const [manufacturers, setManufacturers] = useState<IManufacturer[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [addToAllegro, setAddToAllegro] = useState(false);
 
   useEffect(() => {
     localStorage.removeItem("product_form_draft");
@@ -42,7 +42,6 @@ export default function NewProductPage() {
       setIsUploading(true);
       console.log("🚀 [DEBUG] Rozpoczynam dodawanie produktu");
       console.log("🚀 [DEBUG] Dane wejściowe:", data);
-      console.log("🚀 [DEBUG] Czy dodać na Allegro?", addToAllegro);
 
       if (!data.name || data.name.length < 12) {
         toast({
@@ -149,427 +148,8 @@ export default function NewProductPage() {
             price: Number(data.marketplaces?.ownStore?.price) || 0,
             slug: data.marketplaces?.ownStore?.slug || "",
           },
-          allegro: {
-            active: addToAllegro,
-            price:
-              Number(
-                data.marketplaces?.allegro?.price ||
-                  data.marketplaces?.ownStore?.price
-              ) || 0,
-          },
         },
       };
-
-      const allegroManufacturerMapping: Record<string, string> = {
-        ABB: "ABB",
-        SIEMENS: "Siemens",
-        SEW: "SEW-Eurodrive",
-        WEG: "WEG",
-        NORD: "Nord",
-        TAMEL: "Tamel",
-        CELMA: "Celma Indukta",
-        BESEL: "Besel",
-        INDUKTA: "Celma Indukta",
-        // dodaj więcej według potrzeb
-      };
-
-      const mapManufacturer = (manufacturer: string): string => {
-        const upper = manufacturer?.toUpperCase().trim() || "";
-        return allegroManufacturerMapping[upper] || "inna marka";
-      };
-
-      if (addToAllegro) {
-        console.log(
-          "📦 [DEBUG ALLEGRO] Rozpoczynam proces dodawania na Allegro"
-        );
-
-        const cennikSmartDlaWagi = [
-          { maxWaga: 1, id: "6c97494e-b06e-463e-8cf5-d36750d2ca31" }, // do 1kg
-          { maxWaga: 4, id: "38161cbb-1386-4f17-96e3-4fae1f6de5ee" }, // do 4kg
-          { maxWaga: 5, id: "5720f29c-89d2-4b8a-8e5b-4bc05d03ced4" }, // 4,5-5kg
-          { maxWaga: 9, id: "28c0b642-2c0c-4b12-8e07-8116fd33f716" }, // 6,5-9kg
-          { maxWaga: 13, id: "4225471b-4ca3-4a41-8af0-08a8bd8d0622" }, // 9,5-13kg
-          { maxWaga: 18, id: "8ac507c5-5868-4f17-91cc-b76addadb954" }, // 13,5-18kg
-          { maxWaga: 22, id: "452b15db-1f8b-4f16-b7cc-c882b7d8f4af" }, // 18,5-22kg
-          { maxWaga: 27.5, id: "f1570290-5db6-4614-bc16-0aeddbccd58f" }, // 22,5-27,5kg
-          { maxWaga: 30, id: "592aba1b-5240-4589-8118-dd9d22306e66" }, // 28-30kg
-          { maxWaga: Infinity, id: "aa79662f-56d6-4f98-89c5-c960482c2c5f" }, // powyżej 30kg - bez Smart!
-        ];
-
-        const wybierzCennikSmart = (waga: number): string => {
-          const cennik = cennikSmartDlaWagi.find((c) => waga <= c.maxWaga);
-          return cennik
-            ? cennik.id
-            : cennikSmartDlaWagi[cennikSmartDlaWagi.length - 1].id;
-        };
-
-        const productWeight = Number(data.weight) || 0;
-
-        let categoryId = "121456"; // Domyślnie silniki
-        let productParameters = [];
-
-        if (
-          data.categories &&
-          data.categories.some(
-            (cat: any) =>
-              cat.slug === "motoreduktory" || cat.name.includes("motoreduktor")
-          )
-        ) {
-          categoryId = "121452"; // ID kategorii motoreduktorów
-
-          // Parametry tylko dla motoreduktorów (kategoria 121452)
-          productParameters = [
-            {
-              id: "11726",
-              name: "Moc znamionowa",
-              values: [
-                Math.round(
-                  parseFloat(data.power?.value?.replace(",", ".") || "0") * 1000
-                ).toString(),
-              ],
-            },
-            {
-              id: "221421",
-              name: "Prędkość obrotowa",
-              values: [
-                Math.round(
-                  parseFloat(data.rpm?.value?.replace(",", ".") || "0")
-                ).toString(),
-              ],
-            },
-            {
-              id: "214694",
-              name: "Waga",
-              values: [data.weight ? data.weight.toString() : "0"],
-            },
-            {
-              id: "237206",
-              name: "Model",
-              values: [`MR-${Math.floor(Math.random() * 10000)}`],
-            },
-            // USUŃ PARAMETR MARKA CAŁKOWICIE - nie jest obowiązkowy!
-            // Jeśli chcesz go dodać tylko gdy jest wartość:
-            {
-              id: "248929",
-              name: "Marka",
-              values: [
-                data.manufacturer && data.manufacturer.trim() !== ""
-                  ? data.manufacturer
-                  : "STOJAN",
-              ],
-            },
-            {
-              id: "18654",
-              name: "Rodzaj motoreduktora",
-              values: ["walcowy"],
-              valuesIds: ["18654_1"],
-            },
-            {
-              id: "224017",
-              name: "Kod producenta",
-              values: [
-                `MR-${data.name
-                  .split(" ")
-                  .join("")
-                  .substring(0, 4)
-                  .toUpperCase()}`,
-              ],
-            },
-          ];
-        } else {
-          // Parametry tylko dla silników elektrycznych (kategoria 121456)
-          productParameters = [
-            {
-              id: "219137",
-              name: "Moc",
-              values: [data.power?.value || "0"],
-            },
-            {
-              id: "219153",
-              name: "Obroty",
-              values: [data.rpm?.value || "0"],
-            },
-            {
-              id: "214478",
-              name: "Waga",
-              values: [data.weight ? data.weight.toString() : "0"],
-            },
-            {
-              id: "219149",
-              name: "Średnica wału",
-              values: [
-                data.shaftDiameter ? data.shaftDiameter.toString() : "0",
-              ],
-            },
-            {
-              id: "237206",
-              name: "Model",
-              values: [`S-${Math.floor(Math.random() * 10000)}`],
-            },
-            // NIE DODAWAJ PARAMETRU MARKA JEŚLI NIE MA WARTOŚCI
-            {
-              id: "219157",
-              name: "Rodzaj silnika",
-              values: ["elektryczny"],
-              valuesIds: ["219157_284941"],
-            },
-            {
-              id: "224017",
-              name: "Kod producenta",
-              values: [
-                `MR-${data.name
-                  .split(" ")
-                  .join("")
-                  .substring(0, 4)
-                  .toUpperCase()}`,
-              ],
-            },
-            {
-              id: "219145",
-              name: "Typ silnika",
-              values: [
-                data.mainCategory?.toLowerCase().includes("jednofazowy")
-                  ? "jednofazowy"
-                  : "trójfazowy",
-              ],
-              valuesIds: [
-                data.mainCategory?.toLowerCase().includes("jednofazowy")
-                  ? "219145_284933"
-                  : "219145_284937",
-              ],
-            },
-          ];
-          productParameters.splice(5, 0, {
-            id: "248811",
-            name: "Marka",
-            values: [
-              data.manufacturer && data.manufacturer.trim() !== ""
-                ? data.manufacturer
-                : "STOJAN",
-            ],
-          });
-        }
-
-        // Przygotuj opis w zależności od kategorii
-        let productDescription = "";
-        if (categoryId === "121452") {
-          productDescription = `<h1>MOTOREDUKTOR</h1>
-      <h2>TRÓJFAZOWY</h2>
-      <p><b>${data.power?.value || ""}kW ${data.rpm?.value || ""}obr.</b></p>
-      <p>(${
-        data.condition === "uzywany"
-          ? "używany, po regeneracji"
-          : "nowy, gotowy do pracy"
-      })</p>
-      <p>średnica wału: <b>${data.shaftDiameter || ""}mm</b></p>
-      ${
-        data.flangeSize
-          ? `<p>średnica zamka kołnierza (kryzy): <b>${data.flangeSize}mm</b></p>`
-          : ""
-      }
-      <p>waga: <b>${data.weight || ""}kg</b></p>`;
-        } else {
-          productDescription = `<h1>SILNIK ELEKTRYCZNY</h1>
-    <h2>${data.power?.value || ""}kW ${data.rpm?.value || ""}obr.</h2>
-    <p>${data.description || "Brak opisu"}</p>`;
-        }
-
-        const allegroPrice =
-          Number(data.marketplaces?.allegro?.price) ||
-          Number(data.marketplaces?.ownStore?.price) ||
-          0;
-
-        // Tworzymy allegroOffer z parametrami odpowiednimi do kategorii
-        const allegroOffer = {
-          name: data.name,
-          productSet: [
-            {
-              product: {
-                name: data.name,
-                images: [
-                  ...(data.mainImage ? [data.mainImage] : []),
-                  ...(data.galleryImages || []).filter((img: string) => img),
-                ],
-                parameters: productParameters,
-              },
-            },
-          ],
-          parameters: [
-            {
-              id: "11323",
-              name: "Stan",
-              values: [data.condition === "uzywany" ? "Używany" : "Nowy"],
-              valuesIds: [data.condition === "uzywany" ? "11323_2" : "11323_1"],
-            },
-          ],
-          images: [
-            ...(data.mainImage ? [data.mainImage] : []),
-            ...(data.galleryImages || []).filter((img: string) => img),
-          ],
-          category: {
-            id: categoryId,
-          },
-          location: {
-            city: "Łubianka",
-            postCode: "87-152",
-            countryCode: "PL",
-            province: "KUJAWSKO_POMORSKIE",
-          },
-          description: {
-            sections: [
-              {
-                items: [
-                  {
-                    type: "TEXT",
-                    content: productDescription,
-                  },
-                ],
-              },
-            ],
-          },
-          delivery: {
-            handlingTime: "PT24H",
-            shippingRates: {
-              id: wybierzCennikSmart(productWeight),
-            },
-          },
-          sellingMode: {
-            format: "BUY_NOW",
-            price: {
-              amount: allegroPrice.toString(),
-              currency: "PLN",
-            },
-          },
-          stock: {
-            available: data.stock > 0 ? data.stock : 1,
-            unit: "UNIT",
-          },
-        };
-
-        let allegroCategoryId = "121456"; // Domyślnie silniki elektryczne
-
-        console.log(
-          "Finalna kategoria produktu na Allegro:",
-          allegroCategoryId
-        );
-        console.log(
-          "📦 [DEBUG ALLEGRO] Przygotowana oferta Allegro:",
-          JSON.stringify(allegroOffer, null, 2)
-        );
-        toast({
-          title: "Wysyłam na Allegro...",
-          description: "Trwa dodawanie produktu na Allegro",
-        });
-
-        console.log(
-          "📦 [DEBUG ALLEGRO] Wywołuję API: /api/admin/allegro/offers"
-        );
-
-        // Wywołanie API do utworzenia produktu na Allegro
-        const allegroResponse = await fetch("/api/admin/allegro/offers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(allegroOffer),
-        });
-
-        console.log(
-          "📦 [DEBUG ALLEGRO] Status odpowiedzi:",
-          allegroResponse.status
-        );
-        console.log(
-          "📦 [DEBUG ALLEGRO] Headers odpowiedzi:",
-          allegroResponse.headers
-        );
-
-        const responseText = await allegroResponse.text();
-        console.log("📦 [DEBUG ALLEGRO] Surowa odpowiedź:", responseText);
-
-        let allegroData;
-        try {
-          allegroData = JSON.parse(responseText);
-          console.log("📦 [DEBUG ALLEGRO] Sparsowana odpowiedź:", allegroData);
-        } catch (parseError) {
-          console.error(
-            "❌ [DEBUG ALLEGRO] Błąd parsowania odpowiedzi:",
-            parseError
-          );
-          console.error("❌ [DEBUG ALLEGRO] Treść odpowiedzi:", responseText);
-          throw new Error(
-            `Nieprawidłowa odpowiedź z serwera Allegro: ${responseText}`
-          );
-        }
-
-        if (!allegroResponse.ok) {
-          console.error("❌ [DEBUG ALLEGRO] Błąd HTTP:", {
-            status: allegroResponse.status,
-            data: allegroData,
-          });
-
-          toast({
-            title: "Błąd Allegro",
-            description: allegroData?.error || `Błąd ${allegroResponse.status}`,
-            variant: "destructive",
-          });
-
-          throw new Error(
-            allegroData?.error || "Błąd podczas dodawania na Allegro"
-          );
-        }
-
-        if (allegroData?.data?.id) {
-          console.log(
-            "✅ [DEBUG ALLEGRO] Produkt dodany na Allegro z ID:",
-            allegroData.data.id
-          );
-          console.log(
-            "✅ [DEBUG ALLEGRO] URL oferty:",
-            `https://allegro.pl/oferta/${allegroData.data.id}`
-          );
-
-          toast({
-            title: "Sukces Allegro",
-            description: `Produkt dodany na Allegro (ID: ${allegroData.data.id})`,
-          });
-
-          // Dodaj ID oferty z Allegro do danych produktu
-          processedData.marketplaces.allegro = {
-            active: true,
-            productId: allegroData.data.id,
-            url: `https://allegro.pl/oferta/${allegroData.data.id}`,
-            price: allegroPrice,
-            category: {
-              id: categoryId,
-            },
-            parameters: productParameters,
-            description: {
-              sections: allegroData.data.description?.sections || [],
-            },
-            stock: allegroData.data.stock?.available || data.stock,
-            images: allegroData.data.images || [],
-            lastSyncAt: new Date(),
-          };
-
-          console.log(
-            "✅ [DEBUG ALLEGRO] Dane Allegro dodane do produktu:",
-            processedData.marketplaces.allegro
-          );
-        } else {
-          console.error(
-            "❌ [DEBUG ALLEGRO] Brak ID w odpowiedzi:",
-            allegroData
-          );
-          throw new Error("Nie otrzymano ID oferty z Allegro");
-        }
-      } else {
-        console.log(
-          "⏭️ [DEBUG] Pomijam dodawanie na Allegro (opcja wyłączona)"
-        );
-      }
-
-      console.log("💾 [DEBUG] Zapisuję produkt do bazy danych");
-      console.log("💾 [DEBUG] Finalne dane produktu:", processedData);
 
       await createProduct(processedData);
 
@@ -579,10 +159,7 @@ export default function NewProductPage() {
       localStorage.removeItem("product_form_draft");
 
       toast({
-        title: "Sukces",
-        description: addToAllegro
-          ? "Produkt został dodany do sklepu i na Allegro"
-          : "Produkt został dodany do sklepu",
+        title: "Produkt został dodany do sklepu",
       });
 
       setTimeout(() => {
@@ -612,12 +189,10 @@ export default function NewProductPage() {
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-2xl font-bold mb-6">Dodaj nowy produkt</h1>
-      <ProductForm
-        onSubmit={handleSubmit}
-        isUploadingImages={isUploading}
-        addToAllegro={addToAllegro}
-        setAddToAllegro={setAddToAllegro}
-      />
+      <ProductForm onSubmit={handleSubmit} isUploadingImages={isUploading} />
+      <div className="mt-8">
+        <AllegroProductBox />
+      </div>
     </div>
   );
 }

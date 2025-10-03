@@ -39,16 +39,12 @@ interface ProductFormProps {
   onSubmit: (data: ProductFormData) => void;
   initialData?: Partial<ProductFormData>;
   isUploadingImages?: boolean;
-  addToAllegro?: boolean;
-  setAddToAllegro?: (value: boolean) => void;
 }
 
 export function ProductForm({
   onSubmit,
   initialData,
   isUploadingImages = false,
-  addToAllegro = false,
-  setAddToAllegro = () => {},
 }: ProductFormProps) {
   const [selectedGeneralCategory, setSelectedGeneralCategory] =
     useState<string>("");
@@ -836,48 +832,6 @@ export function ProductForm({
                     </span>
                   )}
                 </div>
-                <Card className="p-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="addToAllegro"
-                        checked={addToAllegro}
-                        onChange={(e) => setAddToAllegro(e.target.checked)}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded mr-2"
-                      />
-                      <label
-                        htmlFor="addToAllegro"
-                        className="font-medium text-sm"
-                      >
-                        Dodaj produkt bezpośrednio na Allegro
-                      </label>
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      Gdy opcja jest odznaczona, produkt będzie dostępny tylko w
-                      Twoim sklepie i nie zostanie automatycznie dodany na
-                      Allegro.
-                    </p>
-
-                    {/* Reszta ustawień Allegro (cena itp.) */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Cena w Allegro [PLN]
-                      </label>
-                      <Input
-                        {...register("marketplaces.allegro.price")}
-                        type="number"
-                        step="0.01"
-                        placeholder="Cena w Allegro (opcjonalnie - jeśli inna niż w sklepie)"
-                        disabled={!addToAllegro}
-                      />
-                      <p className="text-sm text-gray-500">
-                        Jeśli nie podasz ceny dla Allegro, zostanie użyta cena
-                        ze sklepu.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
               </div>
               {/* Opis produktu */}
               <div className="space-y-2">

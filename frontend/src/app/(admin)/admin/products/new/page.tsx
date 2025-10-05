@@ -1,13 +1,12 @@
 // frontend/src/app/(admin)/admin/products/new/page.tsx
 "use client";
-import React from "react";
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import { ProductForm } from "@/components/products/ProductForm";
-import { useProductStore } from "@/store/productStore";
+import { useToast } from "@/components/ui/use-toast";
 import { useManufacturerStore } from "@/store/manufacturerStore";
+import { useProductStore } from "@/store/productStore";
 import { IManufacturer } from "@/types/manufacturer.types";
 import { getManufacturerId } from "@/utils/allegroManufacturers";
+import { useEffect, useState } from "react";
 
 export default function NewProductPage() {
   const { toast } = useToast();
@@ -37,6 +36,14 @@ export default function NewProductPage() {
     try {
       setIsUploading(true);
 
+      toast({
+        title: addToAllegro ? "Tworzenie oferty..." : "Dodawanie produktu...",
+        description: addToAllegro
+          ? "Dodaję produkt do sklepu i Allegro. To może potrwać kilka sekund..."
+          : "Zapisuję produkt w sklepie...",
+        duration: 10000,
+      });
+
       if (!data.name || data.name.length < 12) {
         toast({
           title: "Błąd walidacji",
@@ -51,6 +58,16 @@ export default function NewProductPage() {
         toast({
           title: "Błąd walidacji",
           description: "Musisz dodać zdjęcie główne produktu",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      if (addToAllegro && !data.model?.trim()) {
+        toast({
+          title: "Błąd walidacji",
+          description: "Model jest wymagany przy dodawaniu na Allegro",
           variant: "destructive",
         });
         setIsUploading(false);

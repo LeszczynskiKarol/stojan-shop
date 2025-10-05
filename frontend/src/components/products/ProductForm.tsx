@@ -1,29 +1,28 @@
 // frontend/src/components/products/ProductForm.tsx
 "use client";
-import React from "react";
-import { ICategory } from "@/types/category.types";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/Button";
-import { Label } from "@/components/ui/Label";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { PDFUpload } from "@/components/shared/PDFUpload";
-import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
-import { Card } from "@/components/ui/Card";
-import { IProduct } from "@/types/product.types";
-import { GenerateDescriptionModal } from "./GenerateDescriptionModal";
-import Image from "next/image";
-import { useManufacturerStore } from "@/store/manufacturerStore";
-import { X } from "lucide-react";
-import { IManufacturer } from "@/types/manufacturer.types";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Textarea } from "@/components/ui/Textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useManufacturerStore } from "@/store/manufacturerStore";
+import { ICategory } from "@/types/category.types";
+import { IManufacturer } from "@/types/manufacturer.types";
+import { IProduct } from "@/types/product.types";
+import { X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { GenerateDescriptionModal } from "./GenerateDescriptionModal";
 
 interface ProductFormData extends Omit<IProduct, "categories"> {
   mainCategory?: string;
@@ -364,6 +363,17 @@ export function ProductForm({
           errors.push("kategoria główna");
         }
         if (!data.marketplaces?.ownStore?.price) errors.push("cena");
+
+        if (addToAllegro && !allegroModel.trim()) {
+          toast({
+            title: "Błąd walidacji",
+            description: "Model jest wymagany przy dodawaniu na Allegro",
+            variant: "destructive",
+            duration: 5000,
+          });
+          return;
+        }
+
         const price = Number(data.marketplaces?.ownStore?.price);
         if (isNaN(price) || price <= 0) {
           toast({
@@ -923,7 +933,7 @@ export function ProductForm({
                             {/* Model */}
                             <div className="space-y-2">
                               <label className="text-sm font-medium">
-                                Model (opcjonalnie)
+                                Model
                               </label>
                               <Input
                                 value={allegroModel}
@@ -931,9 +941,10 @@ export function ProductForm({
                                   setAllegroModel(e.target.value)
                                 }
                                 placeholder="np. DRS71M4"
+                                required
                               />
                               <p className="text-sm text-gray-500">
-                                Pozostaw puste jeśli nie znasz modelu
+                                Pole wymagane dla Allegro
                               </p>
                             </div>
                           </div>
@@ -1128,8 +1139,39 @@ export function ProductForm({
         >
           Wyczyść roboczy
         </Button>
-        <Button type="submit" variant="default">
-          Dodaj produkt
+        <Button
+          type="submit"
+          variant="default"
+          disabled={isUploadingImages}
+          className="min-w-[150px]"
+        >
+          {isUploadingImages ? (
+            <div className="flex items-center gap-2">
+              <svg
+                className="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span>Dodawanie...</span>
+            </div>
+          ) : (
+            "Dodaj produkt"
+          )}
         </Button>
       </div>
 

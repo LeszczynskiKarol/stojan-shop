@@ -1,21 +1,21 @@
 // backend/src/services/allegro.service.ts
 
+import axios from 'axios';
 import { Repository } from 'typeorm';
+import { allegroConfig } from '../config/allegro.config';
 import { ALLEGRO_CATEGORIES } from '../config/allegro.constants';
 import { AppDataSource } from '../config/database';
 import { AllegroToken } from '../entities/AllegroToken';
-import { parseAllegroDescription } from '../utils/allegroHelpers';
-import { Product } from '../entities/Product';
-import axios from 'axios';
-import { allegroConfig } from '../config/allegro.config';
-import { EmailService } from './email.service';
-import { AllegroMappingService } from './allegro.mapping.service';
 import {
   AllegroOffer,
   AllegroOffersResponse,
-  AllegroTokenData,
   AllegroParameter,
+  AllegroTokenData,
 } from '../entities/AllegroTypes';
+import { Product } from '../entities/Product';
+import { parseAllegroDescription } from '../utils/allegroHelpers';
+import { AllegroMappingService } from './allegro.mapping.service';
+import { EmailService } from './email.service';
 
 interface AllegroSmartResponse {
   classification: {

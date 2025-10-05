@@ -933,7 +933,7 @@ export function ProductForm({
                             {/* Model */}
                             <div className="space-y-2">
                               <label className="text-sm font-medium">
-                                Model
+                                Model (wymagane na Allegro)
                               </label>
                               <Input
                                 value={allegroModel}

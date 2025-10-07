@@ -754,15 +754,6 @@ export class ProductService {
         return product;
       });
 
-      console.log('🔍 getProductsByCategory debug:', {
-        categoryId,
-        categoryName: category?.name,
-        productsFound: products.length,
-        total,
-        filters,
-        query: queryBuilder.getSql(), // Zobacz dokładne SQL
-      });
-
       return {
         products: productsWithOriginalPaths,
         total,
@@ -792,8 +783,14 @@ export class ProductService {
 
     if (params.unlinkedOnly) {
       queryBuilder
-        .andWhere('product.matched_store_product IS NULL')
-        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL");
+        .where('product.matched_store_product IS NULL')
+        .andWhere(
+          "(product.marketplaces->'allegro'->>'productId' IS NULL OR product.marketplaces->'allegro'->>'productId' = '')"
+        )
+        .andWhere("product.marketplaces->'ownStore'->>'active' = 'true'")
+        .andWhere("product.marketplaces->'ownStore' IS NOT NULL")
+        // DODAJ TEN WARUNEK:
+        .andWhere('product.stock >= 1');
     }
     // Dodajemy sortowanie przed innymi operacjami
     if (params.sortField && params.sortDirection) {
@@ -3740,18 +3737,24 @@ export class ProductService {
       const count = await this.repository
         .createQueryBuilder('product')
         .where('product.matched_store_product IS NULL')
-        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL")
-        // DODAJ TE SAME WARUNKI CO W TABELI!
+        .andWhere(
+          "(product.marketplaces->'allegro'->>'productId' IS NULL OR product.marketplaces->'allegro'->>'productId' = '')"
+        )
         .andWhere("product.marketplaces->'ownStore'->>'active' = 'true'")
         .andWhere("product.marketplaces->'ownStore' IS NOT NULL")
+        // DODAJ TEN WARUNEK:
+        .andWhere('product.stock >= 1')
         .getCount();
 
       console.log(
-        `Znaleziono ${count} niepowiązanych produktów AKTYWNYCH W SKLEPIE`
+        `✅ [ProductService] Znaleziono ${count} niepowiązanych produktów AKTYWNYCH W SKLEPIE ze stanem >= 1`
       );
       return count;
     } catch (error) {
-      console.error('Błąd liczenia niepowiązanych produktów:', error);
+      console.error(
+        '❌ [ProductService] Błąd liczenia niepowiązanych produktów:',
+        error
+      );
       throw error;
     }
   }

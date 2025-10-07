@@ -1032,14 +1032,8 @@ export class ProductController {
     res
   ): Promise<void> => {
     try {
-      console.log('📊 [ProductController] Zliczam niepowiązane produkty...');
-
       // UŻYJ METODY Z SERWISU zamiast bezpośredniego zapytania
       const count = await this.productService.getUnlinkedCount();
-
-      console.log(
-        `📊 [ProductController] Znaleziono ${count} niepowiązanych produktów`
-      );
 
       res.json({
         success: true,

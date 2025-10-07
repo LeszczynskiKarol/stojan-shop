@@ -218,10 +218,12 @@ const OwnStorePage = () => {
     }
   };
 
-  const linkProductToAllegro = async (allegroOfferId: string) => {
+  const linkProductToAllegro = async (
+    allegroOfferId: string,
+    force = false
+  ) => {
     if (!linkingModal.productId) return;
 
-    // Walidacja ID
     if (!/^\d{11}$/.test(allegroOfferId)) {
       toast({
         title: "Błąd",
@@ -232,18 +234,12 @@ const OwnStorePage = () => {
     }
 
     try {
-      console.log(
-        `🔗 Próba powiązania produktu ${linkingModal.productId} z ofertą ${allegroOfferId}`
-      );
-
       const response = await fetch(
         `/api/allegro/link-product/${linkingModal.productId}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ allegroOfferId }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ allegroOfferId, force }),
         }
       );
 
@@ -252,14 +248,13 @@ const OwnStorePage = () => {
       if (data.success) {
         toast({
           title: "Sukces",
-          description: "Produkt został powiązany z ofertą Allegro",
+          description:
+            data.data.updatedRelatedProducts > 0
+              ? `Powiązano produkt i zaktualizowano ${data.data.updatedRelatedProducts} powiązanych produktów`
+              : "Produkt został powiązany z ofertą Allegro",
         });
 
-        fetchProductsForAdmin({
-          page: currentPage,
-          limit: itemsPerPage,
-        });
-
+        fetchProductsForAdmin({ page: currentPage, limit: itemsPerPage });
         setLinkingModal({
           isOpen: false,
           productId: null,
@@ -269,20 +264,23 @@ const OwnStorePage = () => {
           loading: false,
         });
       } else {
-        // Lepsze komunikaty błędów
-        let errorMessage = data.error || "Nie udało się powiązać produktu";
+        // Jeśli konflikt i mamy ID konfliktu, pokaż opcję wymuszenia
+        if (data.conflictingProductId) {
+          const forceLink = window.confirm(
+            `${data.error}\n\nCzy chcesz wymusić powiązanie? To zaktualizuje oba produkty.`
+          );
 
-        if (errorMessage.includes("does not exist")) {
-          errorMessage = `Oferta ${allegroOfferId} nie istnieje w Allegro. Sprawdź ID lub wybierz ofertę z listy poniżej.`;
-        } else if (errorMessage.includes("invalid")) {
-          errorMessage = `ID oferty ${allegroOfferId} jest nieprawidłowe. Użyj 11-cyfrowego numeru oferty Allegro.`;
+          if (forceLink) {
+            // Wywołaj ponownie z flagą force
+            return linkProductToAllegro(allegroOfferId, true);
+          }
+        } else {
+          toast({
+            title: "Błąd",
+            description: data.error || "Nie udało się powiązać produktu",
+            variant: "destructive",
+          });
         }
-
-        toast({
-          title: "Błąd",
-          description: errorMessage,
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Błąd powiązywania:", error);

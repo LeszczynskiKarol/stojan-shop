@@ -699,7 +699,7 @@ export class AllegroController {
         return;
       }
 
-      // Sprawdź czy oferta nie jest już powiązana z innym produktem
+      // 1. USUŃ STARE POWIĄZANIE - jeśli oferta jest już powiązana z INNYM produktem
       const existingLink = await this.productRepository
         .createQueryBuilder('product')
         .where(
@@ -710,14 +710,25 @@ export class AllegroController {
         .getOne();
 
       if (existingLink) {
-        res.status(400).json({
-          success: false,
-          error: `Oferta Allegro ${allegroOfferId} jest już powiązana z produktem: ${existingLink.name}`,
-        });
-        return;
+        console.log(
+          `🔄 Usuwam stare powiązanie oferty ${allegroOfferId} z produktu ${existingLink.name}`
+        );
+
+        // Usuń powiązanie z poprzedniego produktu
+        existingLink.marketplaces = {
+          ...existingLink.marketplaces,
+          allegro: {
+            ...existingLink.marketplaces?.allegro,
+            active: false,
+            productId: undefined,
+            url: undefined,
+          },
+        };
+        existingLink.matched_store_product = null;
+        await this.productRepository.save(existingLink);
       }
 
-      // Znajdź produkt do powiązania
+      // 2. Znajdź produkt do powiązania
       const product = await this.productRepository.findOne({
         where: { id: productId },
       });
@@ -730,14 +741,13 @@ export class AllegroController {
         return;
       }
 
-      // Pobierz szczegóły oferty z Allegro - z lepszą obsługą błędów
+      // 3. Pobierz szczegóły oferty z Allegro
       let allegroOffer;
       try {
         allegroOffer = await this.allegroService.getOfferById(allegroOfferId);
       } catch (error: any) {
         console.error('❌ Błąd pobierania oferty z Allegro:', error);
 
-        // Sprawdź rodzaj błędu
         if (
           error.message.includes('404') ||
           error.message.includes('does not exist')
@@ -763,7 +773,11 @@ export class AllegroController {
         return;
       }
 
-      // Utwórz powiązanie
+      // 4. Utwórz NOWE powiązanie
+      console.log(
+        `✅ Tworzę nowe powiązanie produktu ${product.name} z ofertą ${allegroOfferId}`
+      );
+
       product.marketplaces = {
         ...product.marketplaces,
         allegro: {
@@ -871,6 +885,74 @@ export class AllegroController {
       );
     } catch (error) {
       res.status(500).json({ error });
+    }
+  };
+  public mergeDuplicateProducts: RequestHandler = async (
+    req,
+    res
+  ): Promise<void> => {
+    try {
+      const { allegroOfferId } = req.body;
+
+      // Znajdź wszystkie produkty z tym samym allegroOfferId
+      const duplicates = await this.productRepository
+        .createQueryBuilder('product')
+        .where(
+          "product.marketplaces->'allegro'->>'productId' = :allegroOfferId",
+          { allegroOfferId }
+        )
+        .getMany();
+
+      if (duplicates.length <= 1) {
+        res.json({
+          success: true,
+          message: 'Brak duplikatów do scalenia',
+        });
+        return;
+      }
+
+      // Wybierz produkt główny (ten z Own Store lub pierwszy)
+      const mainProduct =
+        duplicates.find((p) => p.marketplaces?.ownStore?.active) ||
+        duplicates[0];
+      const duplicatesToRemove = duplicates.filter(
+        (p) => p.id !== mainProduct.id
+      );
+
+      // Zaktualizuj powiązania
+      for (const duplicate of duplicatesToRemove) {
+        // Zaktualizuj produkty, które wskazują na duplikat
+        await this.productRepository
+          .createQueryBuilder()
+          .update(Product)
+          .set({
+            matched_store_product: {
+              store_product_id: mainProduct.id,
+              store_product_name: mainProduct.name,
+              matched_at: new Date(),
+            },
+          })
+          .where("matched_store_product->>'store_product_id' = :duplicateId", {
+            duplicateId: duplicate.id,
+          })
+          .execute();
+
+        // Usuń duplikat
+        await this.productRepository.remove(duplicate);
+        console.log(`🗑️ Usunięto duplikat: ${duplicate.id}`);
+      }
+
+      res.json({
+        success: true,
+        message: `Scalono ${duplicatesToRemove.length} duplikatów`,
+        mainProductId: mainProduct.id,
+      });
+    } catch (error) {
+      console.error('❌ Błąd scalania duplikatów:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Błąd podczas scalania duplikatów',
+      });
     }
   };
 }

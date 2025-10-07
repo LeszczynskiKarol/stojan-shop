@@ -164,10 +164,6 @@ export class AllegroService {
               }
             );
 
-            process.stdout.write(
-              `Status szczegółów oferty ${offer.id}: ${detailsResponse.status}\n`
-            );
-
             if (!detailsResponse.ok) {
               const errorText = await detailsResponse.text();
               process.stdout.write(

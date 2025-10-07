@@ -7,6 +7,8 @@ const router = Router();
 const allegroController = new AllegroController();
 const allegroEventSync = new AllegroEventSyncService();
 
+router.get('/unlinked-offers', allegroController.getUnlinkedAllegroOffers);
+
 router.get('/sync-status', (req, res) => {
   res.json({
     lastEventId: allegroEventSync.getLastEventId(),
@@ -22,6 +24,7 @@ router.post('/force-sync', async (req, res) => {
     res.status(500).json({ success: false, error: 'Błąd synchronizacji' });
   }
 });
+router.post('/merge-duplicates', allegroController.mergeDuplicateProducts);
 router.patch('/offers/:offerId/stock', allegroController.updateOfferStock);
 router.post('/offers', allegroController.createOffer);
 router.post('/link-product/:productId', allegroController.linkProductToAllegro);

@@ -33,6 +33,8 @@ const STATIC_PATHS = [
   ...POWER_PAGES,
   "/szukaj",
   "/koszyk",
+  "/QR",
+  "/qr",
   "/zamowienie",
   "/admin",
   "/o-nas",

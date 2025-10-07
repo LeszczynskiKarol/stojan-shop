@@ -25,7 +25,7 @@ router.post('/force-sync', async (req, res) => {
 router.patch('/offers/:offerId/stock', allegroController.updateOfferStock);
 router.post('/offers', allegroController.createOffer);
 router.post('/link-product/:productId', allegroController.linkProductToAllegro);
-router.get('/unlinked-offers', allegroController.getUnlinkedAllegroOffers);
+
 router.post('/products/:productId/allegro', allegroController.createOffer);
 router.get('/auth', allegroController.getAuthUrl);
 router.get('/auth/callback', allegroController.handleCallback);

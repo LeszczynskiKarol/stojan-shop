@@ -690,6 +690,15 @@ export class AllegroController {
         `🔗 Próba powiązania produktu ${productId} z ofertą Allegro ${allegroOfferId}`
       );
 
+      // Walidacja ID oferty Allegro
+      if (!/^\d{11}$/.test(allegroOfferId)) {
+        res.status(400).json({
+          success: false,
+          error: 'ID oferty Allegro musi składać się z 11 cyfr',
+        });
+        return;
+      }
+
       // Sprawdź czy oferta nie jest już powiązana z innym produktem
       const existingLink = await this.productRepository
         .createQueryBuilder('product')
@@ -708,10 +717,6 @@ export class AllegroController {
         return;
       }
 
-      // Pobierz szczegóły oferty z Allegro
-      const allegroOffer =
-        await this.allegroService.getOfferById(allegroOfferId);
-
       // Znajdź produkt do powiązania
       const product = await this.productRepository.findOne({
         where: { id: productId },
@@ -722,6 +727,39 @@ export class AllegroController {
           success: false,
           error: 'Produkt nie został znaleziony',
         });
+        return;
+      }
+
+      // Pobierz szczegóły oferty z Allegro - z lepszą obsługą błędów
+      let allegroOffer;
+      try {
+        allegroOffer = await this.allegroService.getOfferById(allegroOfferId);
+      } catch (error: any) {
+        console.error('❌ Błąd pobierania oferty z Allegro:', error);
+
+        // Sprawdź rodzaj błędu
+        if (
+          error.message.includes('404') ||
+          error.message.includes('does not exist')
+        ) {
+          res.status(404).json({
+            success: false,
+            error: `Oferta Allegro ${allegroOfferId} nie istnieje. Sprawdź ID oferty.`,
+          });
+        } else if (
+          error.message.includes('400') ||
+          error.message.includes('invalid')
+        ) {
+          res.status(400).json({
+            success: false,
+            error: `ID oferty ${allegroOfferId} jest nieprawidłowe. Użyj poprawnego formatu ID.`,
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            error: 'Błąd podczas pobierania szczegółów oferty z Allegro',
+          });
+        }
         return;
       }
 
@@ -758,9 +796,7 @@ export class AllegroController {
         data: {
           productId: product.id,
           allegroOfferId,
-          allegroUrl:
-            product.marketplaces.allegro?.url ||
-            `https://allegro.pl/oferta/${allegroOfferId}`,
+          allegroUrl: product.marketplaces.allegro?.url,
         },
       });
     } catch (error) {

@@ -221,8 +221,21 @@ const OwnStorePage = () => {
   const linkProductToAllegro = async (allegroOfferId: string) => {
     if (!linkingModal.productId) return;
 
+    // Walidacja ID
+    if (!/^\d{11}$/.test(allegroOfferId)) {
+      toast({
+        title: "Błąd",
+        description: "ID oferty Allegro musi składać się z 11 cyfr",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Używamy lokalnego API Route
+      console.log(
+        `🔗 Próba powiązania produktu ${linkingModal.productId} z ofertą ${allegroOfferId}`
+      );
+
       const response = await fetch(
         `/api/allegro/link-product/${linkingModal.productId}`,
         {
@@ -242,7 +255,6 @@ const OwnStorePage = () => {
           description: "Produkt został powiązany z ofertą Allegro",
         });
 
-        // Odśwież listę produktów
         fetchProductsForAdmin({
           page: currentPage,
           limit: itemsPerPage,
@@ -257,9 +269,18 @@ const OwnStorePage = () => {
           loading: false,
         });
       } else {
+        // Lepsze komunikaty błędów
+        let errorMessage = data.error || "Nie udało się powiązać produktu";
+
+        if (errorMessage.includes("does not exist")) {
+          errorMessage = `Oferta ${allegroOfferId} nie istnieje w Allegro. Sprawdź ID lub wybierz ofertę z listy poniżej.`;
+        } else if (errorMessage.includes("invalid")) {
+          errorMessage = `ID oferty ${allegroOfferId} jest nieprawidłowe. Użyj 11-cyfrowego numeru oferty Allegro.`;
+        }
+
         toast({
           title: "Błąd",
-          description: data.error || "Nie udało się powiązać produktu",
+          description: errorMessage,
           variant: "destructive",
         });
       }
@@ -267,7 +288,7 @@ const OwnStorePage = () => {
       console.error("Błąd powiązywania:", error);
       toast({
         title: "Błąd",
-        description: "Nie udało się powiązać produktu",
+        description: "Nie udało się powiązać produktu z Allegro",
         variant: "destructive",
       });
     }

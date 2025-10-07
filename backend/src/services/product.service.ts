@@ -327,10 +327,46 @@ export class ProductService {
       if (productData.legSpacing === '') {
         productData.legSpacing = undefined;
       } else if (!productData.legSpacing.includes('x')) {
-        // Jeśli brakuje formatu "x", dodaj go
         productData.legSpacing = `${productData.legSpacing} x ${productData.legSpacing}`;
       }
-      // Pozostaw jako string
+    }
+
+    // ✅ POPRAWIONA WERSJA Z TYPE ASSERTION:
+    const data = productData as any; // Type assertion aby móc sprawdzać stringi
+
+    // Konwersja dla opcjonalnych pól numerycznych
+    if (!data.flangeBoltCircle || data.flangeBoltCircle === '') {
+      productData.flangeBoltCircle = undefined;
+    } else if (typeof data.flangeBoltCircle === 'string') {
+      const parsed = parseFloat(data.flangeBoltCircle);
+      productData.flangeBoltCircle = isNaN(parsed) ? undefined : parsed;
+    }
+
+    if (!data.sleeveDiameter || data.sleeveDiameter === '') {
+      productData.sleeveDiameter = undefined;
+    } else if (typeof data.sleeveDiameter === 'string') {
+      const parsed = parseFloat(data.sleeveDiameter);
+      productData.sleeveDiameter = isNaN(parsed) ? undefined : parsed;
+    }
+
+    if (!data.flangeSize || data.flangeSize === '') {
+      productData.flangeSize = undefined;
+    } else if (typeof data.flangeSize === 'string') {
+      const parsed = parseFloat(data.flangeSize);
+      productData.flangeSize = isNaN(parsed) ? undefined : parsed;
+    }
+
+    // Konwersja dla wymaganych pól
+    if (typeof data.shaftDiameter === 'string') {
+      productData.shaftDiameter = parseFloat(data.shaftDiameter) || 0;
+    }
+
+    if (typeof data.mechanicalSize === 'string') {
+      productData.mechanicalSize = parseFloat(data.mechanicalSize) || 0;
+    }
+
+    if (typeof data.weight === 'string') {
+      productData.weight = parseFloat(data.weight) || 0;
     }
 
     if (typeof productData.hasBreak === 'string') {

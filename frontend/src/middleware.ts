@@ -28,7 +28,6 @@ const POWER_PAGES = [
   "/silniki-elektryczne-200-kw",
 ];
 
-// Lista statycznych ścieżek, które nie powinny być traktowane jako kategorie
 const STATIC_PATHS = [
   ...POWER_PAGES,
   "/szukaj",
@@ -72,35 +71,39 @@ export function middleware(request: NextRequest) {
     "camera=(), microphone=(), geolocation=()"
   );
 
-  // Sprawdź czy ścieżka jest statyczna (nie powinna być traktowana jako kategoria)
+  // Sprawdź czy ścieżka jest statyczna
   const isStaticPath = STATIC_PATHS.some(
     (staticPath) => path === staticPath || path.startsWith(`${staticPath}/`)
   );
 
-  // Jeśli to statyczna ścieżka (w tym /szukaj), pozwól Next.js ją obsłużyć normalnie
   if (isStaticPath) {
     return response;
   }
 
-  // Jeśli ścieżka zaczyna się od /legal, pozwól na to (dla kompatybilności wstecznej)
   if (path.startsWith("/legal/")) {
     return response;
   }
 
-  // Sprawdź czy to plik statyczny lub zasoby Next.js
+  // Sprawdź czy to plik statyczny, zasoby Next.js, lub favicon
   if (
     path.includes(".") ||
     path.startsWith("/_next") ||
-    path.startsWith("/api")
+    path.startsWith("/api") ||
+    path === "/favicon.ico" ||
+    path.startsWith("/android-chrome") ||
+    path.startsWith("/apple-touch-icon") ||
+    path === "/site.webmanifest" ||
+    path === "/browserconfig.xml"
   ) {
     return response;
   }
 
-  // Dla wszystkich innych ścieżek (potencjalne kategorie/produkty)
-  // możesz tutaj dodać dodatkową logikę jeśli potrzeba
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).)", "/legal/:path"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.svg|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|.*\\.ico|.*\\.xml|.*\\.webmanifest).)",
+    "/legal/:path",
+  ],
 };

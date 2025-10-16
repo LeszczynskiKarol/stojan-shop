@@ -1,4 +1,6 @@
 // backend/src/index.ts
+// ZMIANY: Dodano obsługę sitemap na poziomie root i API
+
 import 'reflect-metadata';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import aiRoutes from './routes/ai.routes';
@@ -112,6 +114,12 @@ app.use((req, res, next) => {
 app.use(sessionMiddleware);
 app.use('/api/image-proxy', proxyRoutes);
 
+// ========================================
+// SITEMAP NA POZIOMIE ROOT - DLA GOOGLE
+// ========================================
+// Google Search Console szuka sitemap w root, więc dodajemy tutaj
+app.use('/', sitemapRoutes);
+
 // Główne routy API
 const mainRouter = express.Router();
 
@@ -128,6 +136,12 @@ const RESERVED_SLUGS = [
   'manufacturer',
   'legal',
   'sitemap',
+  'sitemap_index.xml',
+  'sitemap-categories.xml',
+  'sitemap-products.xml',
+  'sitemap-legal.xml',
+  'sitemap-manufacturers.xml',
+  'sitemap-static.xml',
   'tasks',
   'image-proxy',
 ];
@@ -147,7 +161,7 @@ mainRouter.use('/olx', olxRoutes);
 mainRouter.use('/admin/categories', categoryRoutes);
 mainRouter.use('/ai', aiRoutes);
 mainRouter.use('/analytics', analyticsRoutes);
-mainRouter.use('/sitemap', sitemapRoutes);
+mainRouter.use('/sitemap', sitemapRoutes); // Także pod /api/sitemap
 mainRouter.use('/tasks', taskRoutes);
 
 // Dynamiczne routy z walidacją
@@ -207,6 +221,9 @@ const startServer = async () => {
     console.log('🔄 Uruchomiono synchronizację z Allegro');
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Serwer wystartował na http://0.0.0.0:${PORT}`);
+      console.log(
+        `📍 Sitemap dostępny na: http://0.0.0.0:${PORT}/sitemap_index.xml`
+      );
     });
 
     // Obsługa zamknięcia

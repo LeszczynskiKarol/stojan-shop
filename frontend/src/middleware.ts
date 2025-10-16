@@ -84,7 +84,7 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Sprawdź czy to plik statyczny, zasoby Next.js, lub favicon
+  // Sprawdź czy to plik statyczny, zasoby Next.js, favicon lub SITEMAP
   if (
     path.includes(".") ||
     path.startsWith("/_next") ||
@@ -93,7 +93,11 @@ export function middleware(request: NextRequest) {
     path.startsWith("/android-chrome") ||
     path.startsWith("/apple-touch-icon") ||
     path === "/site.webmanifest" ||
-    path === "/browserconfig.xml"
+    path === "/browserconfig.xml" ||
+    // SITEMAP - dodane wykluczenia
+    path === "/sitemap_index.xml" ||
+    path.startsWith("/sitemap-") ||
+    path.endsWith(".xml")
   ) {
     return response;
   }

@@ -8,3 +8,5 @@ Disallow: /*?shaftMax=
 Disallow: /*?manufacturer=
 Disallow: /*?condition=
 Allow: /*?page=
+
+Sitemap: https://www.silniki-elektryczne.com.pl/sitemap_index.xml

@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { Search, X, Loader2, TrendingUp, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import debounce from "lodash/debounce";
@@ -248,193 +249,211 @@ export const SearchBar = ({
       </form>
 
       {/* Dropdown z sugestiami */}
-      <AnimatePresence>
-        {isOpen && showSuggestions && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute w-full mt-2 bg-background border rounded-xl shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
-          >
-            {/* Ładowanie */}
-            {isLoading && (
-              <div className="p-4 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  Szukanie...
-                </span>
-              </div>
-            )}
+      {typeof window !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && showSuggestions && searchRef.current && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bg-background border rounded-xl shadow-2xl z-[99999] max-h-[70vh] overflow-y-auto"
+                style={{
+                  top: `${
+                    searchRef.current.getBoundingClientRect().bottom +
+                    window.scrollY +
+                    8
+                  }px`,
+                  left: `${
+                    searchRef.current.getBoundingClientRect().left +
+                    window.scrollX
+                  }px`,
+                  width: `${searchRef.current.getBoundingClientRect().width}px`,
+                }}
+              >
+                {/* Ładowanie */}
+                {isLoading && (
+                  <div className="p-4 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      Szukanie...
+                    </span>
+                  </div>
+                )}
 
-            {/* Sugestie produktów */}
-            {!isLoading && suggestions.length > 0 && (
-              <div className="py-2">
-                <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
-                  Produkty
-                </div>
-                {suggestions.map((suggestion, index) => (
-                  <motion.button
-                    key={suggestion.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.02 }}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full px-4 py-3 hover:bg-accent/50 transition-colors flex items-center gap-3 text-left"
-                  >
-                    {/* Miniaturka */}
-                    {suggestion.image && (
-                      <div className="w-12 h-12 relative flex-shrink-0">
-                        <Image
-                          src={suggestion.image}
-                          alt={suggestion.name}
-                          fill
-                          className="object-cover rounded"
-                        />
-                      </div>
-                    )}
-
-                    {/* Informacje o produkcie */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {suggestion.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        {suggestion.manufacturer && (
-                          <span>{suggestion.manufacturer}</span>
-                        )}
-                        {formatPower(suggestion.power) && (
-                          <>
-                            <span>•</span>
-                            <span>{formatPower(suggestion.power)}</span>
-                          </>
-                        )}
-                        {suggestion.price && (
-                          <>
-                            <span>•</span>
-                            <span>
-                              {suggestion.price.toLocaleString("pl-PL", {
-                                style: "currency",
-                                currency: "PLN",
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
-                          </>
-                        )}
-                      </div>
+                {/* Sugestie produktów */}
+                {!isLoading && suggestions.length > 0 && (
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
+                      Produkty
                     </div>
+                    {suggestions.map((suggestion, index) => (
+                      <motion.button
+                        key={suggestion.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full px-4 py-3 hover:bg-accent/50 transition-colors flex items-center gap-3 text-left"
+                      >
+                        {/* Miniaturka */}
+                        {suggestion.image && (
+                          <div className="w-12 h-12 relative flex-shrink-0">
+                            <Image
+                              src={suggestion.image}
+                              alt={suggestion.name}
+                              fill
+                              className="object-cover rounded"
+                            />
+                          </div>
+                        )}
 
-                    {/* Strzałka */}
-                    <svg
-                      className="w-4 h-4 text-muted-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                        {/* Informacje o produkcie */}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">
+                            {suggestion.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            {suggestion.manufacturer && (
+                              <span>{suggestion.manufacturer}</span>
+                            )}
+                            {formatPower(suggestion.power) && (
+                              <>
+                                <span>•</span>
+                                <span>{formatPower(suggestion.power)}</span>
+                              </>
+                            )}
+                            {suggestion.price && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  {suggestion.price.toLocaleString("pl-PL", {
+                                    style: "currency",
+                                    currency: "PLN",
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 2,
+                                  })}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Strzałka */}
+                        <svg
+                          className="w-4 h-4 text-muted-foreground"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </motion.button>
+                    ))}
+
+                    {/* Link do wszystkich wyników */}
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: suggestions.length * 0.02 }}
+                      onClick={handleSubmit}
+                      className="w-full px-4 py-3 bg-primary/10 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-primary"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </motion.button>
-                ))}
+                      Zobacz wszystkie wyniki dla "{query}"
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </motion.button>
+                  </div>
+                )}
 
-                {/* Link do wszystkich wyników */}
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: suggestions.length * 0.02 }}
-                  onClick={handleSubmit}
-                  className="w-full px-4 py-3 bg-primary/10 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-primary"
-                >
-                  Zobacz wszystkie wyniki dla "{query}"
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </motion.button>
-              </div>
-            )}
+                {/* Brak wyników */}
+                {!isLoading &&
+                  query.length >= 2 &&
+                  suggestions.length === 0 && (
+                    <div className="p-8 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Nie znaleziono produktów dla "{query}"
+                      </p>
+                      <button
+                        onClick={handleSubmit}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Pokaż wszystkie wyniki →
+                      </button>
+                    </div>
+                  )}
 
-            {/* Brak wyników */}
-            {!isLoading && query.length >= 2 && suggestions.length === 0 && (
-              <div className="p-8 text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Nie znaleziono produktów dla "{query}"
-                </p>
-                <button
-                  onClick={handleSubmit}
-                  className="text-sm text-primary hover:underline"
-                >
-                  Pokaż wszystkie wyniki →
-                </button>
-              </div>
-            )}
+                {/* Ostatnie i popularne wyszukiwania (gdy nie ma query) */}
+                {!query &&
+                  (recentSearches.length > 0 || popularSearches.length > 0) && (
+                    <div className="py-2">
+                      {/* Ostatnie wyszukiwania */}
+                      {recentSearches.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase flex items-center gap-2">
+                            <Clock className="h-3 w-3" />
+                            Ostatnie wyszukiwania
+                          </div>
+                          {recentSearches.map((term, index) => (
+                            <motion.button
+                              key={term}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.02 }}
+                              onClick={() => handleQuickSearch(term)}
+                              className="w-full px-4 py-2 hover:bg-accent/50 transition-colors flex items-center gap-2 text-left text-sm"
+                            >
+                              <Search className="h-4 w-4 text-muted-foreground" />
+                              {term}
+                            </motion.button>
+                          ))}
+                        </>
+                      )}
 
-            {/* Ostatnie i popularne wyszukiwania (gdy nie ma query) */}
-            {!query &&
-              (recentSearches.length > 0 || popularSearches.length > 0) && (
-                <div className="py-2">
-                  {/* Ostatnie wyszukiwania */}
-                  {recentSearches.length > 0 && (
-                    <>
-                      <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase flex items-center gap-2">
-                        <Clock className="h-3 w-3" />
-                        Ostatnie wyszukiwania
+                      {/* Popularne wyszukiwania */}
+                      <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase flex items-center gap-2 mt-2">
+                        <TrendingUp className="h-3 w-3" />
+                        Popularne wyszukiwania
                       </div>
-                      {recentSearches.map((term, index) => (
+                      {popularSearches.map((term, index) => (
                         <motion.button
                           key={term}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.02 }}
+                          transition={{
+                            delay: (index + recentSearches.length) * 0.02,
+                          }}
                           onClick={() => handleQuickSearch(term)}
                           className="w-full px-4 py-2 hover:bg-accent/50 transition-colors flex items-center gap-2 text-left text-sm"
                         >
-                          <Search className="h-4 w-4 text-muted-foreground" />
+                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
                           {term}
                         </motion.button>
                       ))}
-                    </>
+                    </div>
                   )}
-
-                  {/* Popularne wyszukiwania */}
-                  <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase flex items-center gap-2 mt-2">
-                    <TrendingUp className="h-3 w-3" />
-                    Popularne wyszukiwania
-                  </div>
-                  {popularSearches.map((term, index) => (
-                    <motion.button
-                      key={term}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: (index + recentSearches.length) * 0.02,
-                      }}
-                      onClick={() => handleQuickSearch(term)}
-                      className="w-full px-4 py-2 hover:bg-accent/50 transition-colors flex items-center gap-2 text-left text-sm"
-                    >
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      {term}
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-          </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </div>
   );
 };

@@ -742,192 +742,196 @@ export const CheckoutForm = ({
               <MapPin className="w-5 h-5" />
               Adres dostawy
             </h3>
-
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-muted-foreground">
-                Inny niż podany wyżej
-              </label>
-              <Switch
-                checked={differentShippingAddress}
-                onCheckedChange={setDifferentShippingAddress}
-                className="data-[state=checked]:bg-primary"
-              />
-            </div>
           </div>
+          <div>
+            {!differentShippingAddress ? (
+              <p className="text-sm text-muted-foreground">
+                ✓ Dostawa na adres podany powyżej
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {/* KOD POCZTOWY DOSTAWY */}
+                <div className="relative">
+                  <Input
+                    {...register("shippingPostalCode", {
+                      required: differentShippingAddress
+                        ? "Kod pocztowy jest wymagany"
+                        : false,
+                      pattern: differentShippingAddress
+                        ? {
+                            value: /^\d{2}-\d{3}$/,
+                            message: "Format: 00-000",
+                          }
+                        : undefined,
+                      onChange: (e) => {
+                        const formattedValue = formatPostalCode(e.target.value);
+                        e.target.value = formattedValue;
+                        setValue("shippingPostalCode", formattedValue);
+                      },
+                    })}
+                    placeholder="Kod pocztowy * (np. 01-111)"
+                    maxLength={6}
+                    error={errors.shippingPostalCode?.message}
+                    className="bg-background border-border pr-10"
+                  />
+                  {isLoadingPostalCode && shippingPostalCode?.length === 6 && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                  {shippingPostalCodeVerified && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                  )}
+                </div>
 
-          {!differentShippingAddress ? (
-            <p className="text-sm text-muted-foreground">
-              ✓ Dostawa na adres podany wyżej
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {/* KOD POCZTOWY DOSTAWY */}
-              <div className="relative">
+                {/* MIASTO DOSTAWY */}
+                <div className="space-y-1">
+                  {shippingPostalCodeData.length > 1 ? (
+                    // Jeśli jest wiele miejscowości, pokaż select
+                    <div className="space-y-2">
+                      <select
+                        {...register("shippingCity", {
+                          required: differentShippingAddress
+                            ? "Wybierz miejscowość"
+                            : false,
+                        })}
+                        className="w-full p-3 bg-background border border-border rounded-md 
+                               focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        onChange={(e) => {
+                          const selectedCity = e.target.value;
+                          // Znajdź pełne dane dla wybranej miejscowości
+                          const cityData = shippingPostalCodeData.find((d) => {
+                            // Sprawdź czy to miasto (kończy się na "(miasto)")
+                            if (selectedCity.endsWith("(miasto)")) {
+                              return (
+                                d.miejscowosc ===
+                                  selectedCity.replace(" (miasto)", "") &&
+                                d.gmina &&
+                                d.gmina.startsWith("M.")
+                              );
+                            }
+                            // Sprawdź czy ma gminę w nawiasach
+                            else if (selectedCity.includes("(gm.")) {
+                              const cityName = selectedCity.split(" (gm.")[0];
+                              const gminaName =
+                                selectedCity.match(/\(gm\. ([^)]+)\)/)?.[1];
+                              return (
+                                d.miejscowosc === cityName &&
+                                d.gmina === gminaName
+                              );
+                            }
+                            // Sprawdź czy ma powiat w nawiasach
+                            else if (selectedCity.includes("(pow.")) {
+                              const cityName = selectedCity.split(" (pow.")[0];
+                              return d.miejscowosc === cityName;
+                            }
+                            return d.miejscowosc === selectedCity;
+                          });
+
+                          if (cityData) {
+                            setValue("shippingCity", cityData.miejscowosc);
+                            setValue("shippingGmina", cityData.gmina);
+                            setValue("shippingPowiat", cityData.powiat);
+                            setValue(
+                              "shippingWojewodztwo",
+                              cityData.wojewodztwo
+                            );
+                            setShippingPostalCodeVerified(true);
+                          }
+                        }}
+                      >
+                        <option value="">-- Wybierz miejscowość --</option>
+                        {shippingPostalCodeData.map((data, idx) => {
+                          let label = data.miejscowosc;
+                          if (shippingPostalCodeData.length > 1) {
+                            if (data.gmina && data.gmina.startsWith("M.")) {
+                              label = `${data.miejscowosc} (miasto)`;
+                            } else if (
+                              data.gmina &&
+                              data.gmina !== data.miejscowosc
+                            ) {
+                              label = `${data.miejscowosc} (gm. ${data.gmina})`;
+                            }
+                          }
+                          return (
+                            <option key={idx} value={data.miejscowosc}>
+                              {label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 pl-1">
+                        ⚠ Dla tego kodu pocztowego istnieje{" "}
+                        {shippingPostalCodeData.length} miejscowości. Wybierz
+                        właściwą.
+                      </p>
+                    </div>
+                  ) : (
+                    // Jeśli jest jedna miejscowość lub nie ma danych, pokaż zwykłe pole
+                    <Input
+                      {...register("shippingCity", {
+                        required: differentShippingAddress
+                          ? "Miejscowość jest wymagana"
+                          : false,
+                      })}
+                      placeholder="Miejscowość *"
+                      error={errors.shippingCity?.message}
+                      className={`bg-background border-border ${
+                        shippingPostalCodeVerified
+                          ? "bg-green-50 dark:bg-green-900/10"
+                          : ""
+                      }`}
+                      onChange={(e) => {
+                        // Jeśli użytkownik edytuje miasto, resetuj weryfikację
+                        if (shippingPostalCodeVerified) {
+                          setShippingPostalCodeVerified(false);
+                        }
+                      }}
+                    />
+                  )}
+
+                  {shippingPostalCodeVerified &&
+                    shippingPostalCodeData.length <= 1 && (
+                      <p className="text-xs text-green-600 dark:text-green-400 pl-1">
+                        ✓ Miejscowość uzupełniona automatycznie
+                      </p>
+                    )}
+                  {errors.shippingCity && (
+                    <p className="text-xs text-red-500 pl-1">
+                      {errors.shippingCity.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* ULICA DOSTAWY */}
                 <Input
-                  {...register("shippingPostalCode", {
+                  {...register("shippingStreet", {
                     required: differentShippingAddress
-                      ? "Kod pocztowy jest wymagany"
+                      ? "Adres dostawy jest wymagany"
                       : false,
                     pattern: differentShippingAddress
                       ? {
-                          value: /^\d{2}-\d{3}$/,
-                          message: "Format: 00-000",
+                          value: /.*\d+.*/,
+                          message: "Adres musi zawierać numer budynku",
                         }
                       : undefined,
-                    onChange: (e) => {
-                      const formattedValue = formatPostalCode(e.target.value);
-                      e.target.value = formattedValue;
-                      setValue("shippingPostalCode", formattedValue);
-                    },
                   })}
-                  placeholder="Kod pocztowy * (np. 01-111)"
-                  maxLength={6}
-                  error={errors.shippingPostalCode?.message}
-                  className="bg-background border-border pr-10"
+                  placeholder="Ulica i/lub numer *"
+                  error={errors.shippingStreet?.message}
+                  className="bg-background border-border"
                 />
-                {isLoadingPostalCode && shippingPostalCode?.length === 6 && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
-                )}
-                {shippingPostalCodeVerified && (
-                  <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
-                )}
               </div>
-
-              {/* MIASTO DOSTAWY */}
-              <div className="space-y-1">
-                {shippingPostalCodeData.length > 1 ? (
-                  // Jeśli jest wiele miejscowości, pokaż select
-                  <div className="space-y-2">
-                    <select
-                      {...register("shippingCity", {
-                        required: differentShippingAddress
-                          ? "Wybierz miejscowość"
-                          : false,
-                      })}
-                      className="w-full p-3 bg-background border border-border rounded-md 
-                               focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      onChange={(e) => {
-                        const selectedCity = e.target.value;
-                        // Znajdź pełne dane dla wybranej miejscowości
-                        const cityData = shippingPostalCodeData.find((d) => {
-                          // Sprawdź czy to miasto (kończy się na "(miasto)")
-                          if (selectedCity.endsWith("(miasto)")) {
-                            return (
-                              d.miejscowosc ===
-                                selectedCity.replace(" (miasto)", "") &&
-                              d.gmina &&
-                              d.gmina.startsWith("M.")
-                            );
-                          }
-                          // Sprawdź czy ma gminę w nawiasach
-                          else if (selectedCity.includes("(gm.")) {
-                            const cityName = selectedCity.split(" (gm.")[0];
-                            const gminaName =
-                              selectedCity.match(/\(gm\. ([^)]+)\)/)?.[1];
-                            return (
-                              d.miejscowosc === cityName &&
-                              d.gmina === gminaName
-                            );
-                          }
-                          // Sprawdź czy ma powiat w nawiasach
-                          else if (selectedCity.includes("(pow.")) {
-                            const cityName = selectedCity.split(" (pow.")[0];
-                            return d.miejscowosc === cityName;
-                          }
-                          return d.miejscowosc === selectedCity;
-                        });
-
-                        if (cityData) {
-                          setValue("shippingCity", cityData.miejscowosc);
-                          setValue("shippingGmina", cityData.gmina);
-                          setValue("shippingPowiat", cityData.powiat);
-                          setValue("shippingWojewodztwo", cityData.wojewodztwo);
-                          setShippingPostalCodeVerified(true);
-                        }
-                      }}
-                    >
-                      <option value="">-- Wybierz miejscowość --</option>
-                      {shippingPostalCodeData.map((data, idx) => {
-                        let label = data.miejscowosc;
-                        if (shippingPostalCodeData.length > 1) {
-                          if (data.gmina && data.gmina.startsWith("M.")) {
-                            label = `${data.miejscowosc} (miasto)`;
-                          } else if (
-                            data.gmina &&
-                            data.gmina !== data.miejscowosc
-                          ) {
-                            label = `${data.miejscowosc} (gm. ${data.gmina})`;
-                          }
-                        }
-                        return (
-                          <option key={idx} value={data.miejscowosc}>
-                            {label}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 pl-1">
-                      ⚠ Dla tego kodu pocztowego istnieje{" "}
-                      {shippingPostalCodeData.length} miejscowości. Wybierz
-                      właściwą.
-                    </p>
-                  </div>
-                ) : (
-                  // Jeśli jest jedna miejscowość lub nie ma danych, pokaż zwykłe pole
-                  <Input
-                    {...register("shippingCity", {
-                      required: differentShippingAddress
-                        ? "Miejscowość jest wymagana"
-                        : false,
-                    })}
-                    placeholder="Miejscowość *"
-                    error={errors.shippingCity?.message}
-                    className={`bg-background border-border ${
-                      shippingPostalCodeVerified
-                        ? "bg-green-50 dark:bg-green-900/10"
-                        : ""
-                    }`}
-                    onChange={(e) => {
-                      // Jeśli użytkownik edytuje miasto, resetuj weryfikację
-                      if (shippingPostalCodeVerified) {
-                        setShippingPostalCodeVerified(false);
-                      }
-                    }}
-                  />
-                )}
-
-                {shippingPostalCodeVerified &&
-                  shippingPostalCodeData.length <= 1 && (
-                    <p className="text-xs text-green-600 dark:text-green-400 pl-1">
-                      ✓ Miejscowość uzupełniona automatycznie
-                    </p>
-                  )}
-                {errors.shippingCity && (
-                  <p className="text-xs text-red-500 pl-1">
-                    {errors.shippingCity.message}
-                  </p>
-                )}
-              </div>
-
-              {/* ULICA DOSTAWY */}
-              <Input
-                {...register("shippingStreet", {
-                  required: differentShippingAddress
-                    ? "Adres dostawy jest wymagany"
-                    : false,
-                  pattern: differentShippingAddress
-                    ? {
-                        value: /.*\d+.*/,
-                        message: "Adres musi zawierać numer budynku",
-                      }
-                    : undefined,
-                })}
-                placeholder="Ulica i/lub numer *"
-                error={errors.shippingStreet?.message}
-                className="bg-background border-border"
-              />
-            </div>
-          )}
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-8">
+            <Switch
+              checked={differentShippingAddress}
+              onCheckedChange={setDifferentShippingAddress}
+              className="data-[state=checked]:bg-primary"
+            />
+            <label className="text-sm text-muted-foreground">
+              Chcesz podać inny adres dostawy? Kliknij przycisk i podaj adres
+              wysyłki
+            </label>
+          </div>
         </div>
 
         {/* SEKCJA 4: Uwagi do zamówienia */}

@@ -21,11 +21,63 @@ export const metadata: Metadata = {
   description:
     "Silniki elektryczne trójfazowe, jednofazowe, z hamulcem. Szeroki wybór napędów elektrycznych różnych mocy.",
   keywords: "silniki elektryczne, napędy elektryczne, motoreduktory",
-  robots: "index, follow",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        url: "/android-chrome-192x192.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "512x512",
+        url: "/android-chrome-512x512.png",
+      },
+    ],
+  },
+
+  // MANIFEST DLA PWA
+  manifest: "/site.webmanifest",
+  verification: {
+    google: "xFcDL4OEm7GF0jFWvzfsXIleZSpbMUW3QTb7-3r89gM",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
   openGraph: {
     type: "website",
     locale: "pl_PL",
-    siteName: "Stojan Shop",
+    url: "https://www.silniki-elektryczne.com.pl",
+    siteName: "Sklep Stojan - Silniki Elektryczne",
+    title: "Silniki elektryczne - sklep internetowy Stojan",
+    description: "Profesjonalny sklep z silnikami elektrycznymi",
+    images: [
+      {
+        url: "/logo_dark.png",
+        width: 1200,
+        height: 630,
+        alt: "Stojan - Silniki Elektryczne",
+      },
+    ],
   },
 };
 

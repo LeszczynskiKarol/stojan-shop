@@ -146,7 +146,7 @@ export default function HomePageClient() {
   return (
     <div className="space-y-10">
       {/* Sekcja Hero z wyszukiwarką */}
-      <section className="relative overflow-hidden">
+      <section className="relative">
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
 

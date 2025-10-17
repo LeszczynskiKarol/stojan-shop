@@ -1032,22 +1032,23 @@ export class ProductController {
     res
   ): Promise<void> => {
     try {
-      const productRepository = AppDataSource.getRepository(Product);
+      // UŻYJ METODY Z SERWISU zamiast bezpośredniego zapytania
+      const count = await this.productService.getUnlinkedCount();
 
-      const count = await productRepository
-        .createQueryBuilder('product')
-        .where('product.matched_store_product IS NULL')
-        .andWhere("product.marketplaces->'allegro'->>'productId' IS NULL")
-        .getCount();
-
-      console.log(`📊 Znaleziono ${count} niepowiązanych produktów`);
-      res.json({ success: true, count });
+      res.json({
+        success: true,
+        count,
+      });
     } catch (error) {
-      console.error('❌ Błąd liczenia niepowiązanych produktów:', error);
-      // Poprawione typowanie error
-      const errorMessage =
-        error instanceof Error ? error.message : 'Nieznany błąd';
-      res.status(500).json({ success: false, count: 0, error: errorMessage });
+      console.error(
+        '❌ [ProductController] Błąd zliczania niepowiązanych produktów:',
+        error
+      );
+      res.status(500).json({
+        success: false,
+        count: 0,
+        error: 'Błąd podczas zliczania niepowiązanych produktów',
+      });
     }
   };
 }

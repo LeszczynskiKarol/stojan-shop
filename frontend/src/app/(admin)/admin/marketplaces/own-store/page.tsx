@@ -218,19 +218,19 @@ const OwnStorePage = () => {
     }
   };
 
-  const linkProductToAllegro = async (allegroOfferId: string) => {
+  const linkProductToAllegro = async (
+    allegroOfferId: string,
+    force = false
+  ) => {
     if (!linkingModal.productId) return;
 
     try {
-      // Używamy lokalnego API Route
       const response = await fetch(
         `/api/allegro/link-product/${linkingModal.productId}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ allegroOfferId }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ allegroOfferId, force }),
         }
       );
 
@@ -239,15 +239,13 @@ const OwnStorePage = () => {
       if (data.success) {
         toast({
           title: "Sukces",
-          description: "Produkt został powiązany z ofertą Allegro",
+          description:
+            data.data.updatedRelatedProducts > 0
+              ? `Powiązano produkt i zaktualizowano ${data.data.updatedRelatedProducts} powiązanych produktów`
+              : "Produkt został powiązany z ofertą Allegro",
         });
 
-        // Odśwież listę produktów
-        fetchProductsForAdmin({
-          page: currentPage,
-          limit: itemsPerPage,
-        });
-
+        fetchProductsForAdmin({ page: currentPage, limit: itemsPerPage });
         setLinkingModal({
           isOpen: false,
           productId: null,
@@ -257,17 +255,29 @@ const OwnStorePage = () => {
           loading: false,
         });
       } else {
-        toast({
-          title: "Błąd",
-          description: data.error || "Nie udało się powiązać produktu",
-          variant: "destructive",
-        });
+        // Jeśli konflikt i mamy ID konfliktu, pokaż opcję wymuszenia
+        if (data.conflictingProductId) {
+          const forceLink = window.confirm(
+            `${data.error}\n\nCzy chcesz wymusić powiązanie? To zaktualizuje oba produkty.`
+          );
+
+          if (forceLink) {
+            // Wywołaj ponownie z flagą force
+            return linkProductToAllegro(allegroOfferId, true);
+          }
+        } else {
+          toast({
+            title: "Błąd",
+            description: data.error || "Nie udało się powiązać produktu",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Błąd powiązywania:", error);
       toast({
         title: "Błąd",
-        description: "Nie udało się powiązać produktu",
+        description: "Nie udało się powiązać produktu z Allegro",
         variant: "destructive",
       });
     }

@@ -1,4 +1,4 @@
-// frontend/app/products/[id]/route.ts
+// frontend/src/app/api/products/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { IProduct } from "@/types/product.types";
 
@@ -50,6 +50,17 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   const resolvedParams = await context.params;
+
+  if (resolvedParams.id === "unlinked-count") {
+    // Przekieruj do właściwego endpointu
+    const apiUrl = `${process.env.API_URL}/api/products/unlinked-count`;
+    const response = await fetch(apiUrl, {
+      cache: "no-store",
+    });
+    const data = await response.json();
+    return NextResponse.json(data);
+  }
+
   try {
     const params = await Promise.resolve(context.params);
     const apiUrl = new URL(

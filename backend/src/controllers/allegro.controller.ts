@@ -690,15 +690,6 @@ export class AllegroController {
         `🔗 Próba powiązania produktu ${productId} z ofertą Allegro ${allegroOfferId}`
       );
 
-      // Walidacja ID oferty Allegro
-      if (!/^\d{11}$/.test(allegroOfferId)) {
-        res.status(400).json({
-          success: false,
-          error: 'ID oferty Allegro musi składać się z 11 cyfr',
-        });
-        return;
-      }
-
       // 1. USUŃ STARE POWIĄZANIE - jeśli oferta jest już powiązana z INNYM produktem
       const existingLink = await this.productRepository
         .createQueryBuilder('product')

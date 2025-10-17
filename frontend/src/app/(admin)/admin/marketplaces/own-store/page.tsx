@@ -224,15 +224,6 @@ const OwnStorePage = () => {
   ) => {
     if (!linkingModal.productId) return;
 
-    if (!/^\d{11}$/.test(allegroOfferId)) {
-      toast({
-        title: "Błąd",
-        description: "ID oferty Allegro musi składać się z 11 cyfr",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const response = await fetch(
         `/api/allegro/link-product/${linkingModal.productId}`,

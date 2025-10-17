@@ -1,16 +1,16 @@
 // backend/src/services/product.service.ts
-import { Repository, MoreThan, IsNull, Not } from 'typeorm';
-import { uploadToS3 } from '../utils/s3Client';
-import { AppDataSource } from '../config/database';
-import { Product } from '../entities/Product';
-import { Category } from '../entities/Category';
-import { Order } from '../entities/Order';
-import { ApiError } from '../utils/apiError';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import slugify from 'slugify';
-import { Manufacturer } from '../entities/Manufacturer';
 import { EventEmitter } from 'events';
+import path from 'path';
+import slugify from 'slugify';
+import { MoreThan, Not, Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { AppDataSource } from '../config/database';
+import { Category } from '../entities/Category';
+import { Manufacturer } from '../entities/Manufacturer';
+import { Order } from '../entities/Order';
+import { Product } from '../entities/Product';
+import { ApiError } from '../utils/apiError';
+import { uploadToS3 } from '../utils/s3Client';
 
 const categoryNameVariants: { [key: string]: string[] } = {
   'Silniki trójfazowe': ['Trójfazowe', 'Trojfazowe'],

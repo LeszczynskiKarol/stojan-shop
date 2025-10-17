@@ -1,5 +1,5 @@
 // backend/src/middlewares/auth.middleware.ts
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { env } from '../config/env.config';
 import { UserRole } from '../entities/User';

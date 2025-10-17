@@ -1,58 +1,64 @@
 // backend/src/scripts/createAdmin.ts
+import * as bcrypt from 'bcrypt';
+import 'reflect-metadata';
 import { AppDataSource } from '../config/database';
 import { User, UserRole } from '../entities/User';
-import * as bcrypt from 'bcrypt';
 
-// Tablica z danymi adminów
-const adminsToCreate = [
-  {
-    email: 'silniki.elektryczne123@gmail.com',
-    name: 'Stojan',
-    password: 'Stilnik123***',
-  },
-  {
-    email: 'karolleszczynskikorektor@gmail.com',
-    name: 'Karol',
-    password: 'Koszykowka123**',
-  },
-  // Dodaj więcej adminów według potrzeb
-];
-
-async function createAdmins() {
+async function createAdmin() {
   try {
+    console.log('🔌 Łączenie z bazą danych...');
     await AppDataSource.initialize();
+    console.log('✅ Połączono z bazą!');
+
     const userRepository = AppDataSource.getRepository(User);
 
-    for (const adminInfo of adminsToCreate) {
-      // Sprawdź czy admin już istnieje
-      const existingAdmin = await userRepository.findOne({
-        where: { email: adminInfo.email },
-      });
+    // Sprawdź czy admin już istnieje
+    const existingAdmin = await userRepository.findOne({
+      where: { email: 'kontakt@webcopywriting.pl' },
+    });
 
-      if (existingAdmin) {
-        console.log(`Admin ${adminInfo.email} już istnieje!`);
-        continue;
-      }
+    if (existingAdmin) {
+      console.log('⚠️  Admin już istnieje! Aktualizuję hasło...');
+      const hashedPassword = await bcrypt.hash('Koszykowka123**', 10);
+      existingAdmin.password = hashedPassword;
+      existingAdmin.role = UserRole.ADMIN;
+      existingAdmin.isActive = true;
+      await userRepository.save(existingAdmin);
+      console.log('✅ Hasło admina zostało zaktualizowane!');
+    } else {
+      console.log('👤 Tworzenie nowego admina...');
+      const hashedPassword = await bcrypt.hash('Koszykowka123**', 10);
 
-      // Przygotuj dane admina
-      const adminData = {
-        email: adminInfo.email,
-        name: adminInfo.name,
-        password: await bcrypt.hash(adminInfo.password, 10),
+      const admin = userRepository.create({
+        email: 'kontakt@webcopywriting.pl',
+        name: 'Admin',
+        password: hashedPassword,
         role: UserRole.ADMIN,
         isActive: true,
         receiveEmails: true,
-      };
+        consentSettings: {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied',
+          clarity_storage: 'denied',
+        },
+      });
 
-      const admin = userRepository.create(adminData);
       await userRepository.save(admin);
-      console.log(`✅ Admin ${adminInfo.email} został utworzony pomyślnie!`);
+      console.log('✅ Admin utworzony pomyślnie!');
     }
-  } catch (error) {
-    console.error('❌ Błąd podczas tworzenia adminów:', error);
-  } finally {
+
+    console.log('📧 Email: kontakt@webcopywriting.pl');
+    console.log('🔑 Hasło: Koszykowka123**');
+
     await AppDataSource.destroy();
+    console.log('👋 Rozłączono z bazą');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Błąd:', error);
+    process.exit(1);
   }
 }
 
-createAdmins();
+createAdmin();

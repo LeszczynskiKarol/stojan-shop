@@ -1,11 +1,11 @@
 // frontend/src/components/admin/LoginForm.tsx
 "use client";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { useAuthStore } from "@/store/authStore";
+import { Input } from "@/components/ui/Input";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
+import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation"; // Dodajemy useRouter
+import { useState } from "react";
 
 export const LoginForm = () => {
   const router = useRouter(); // Używamy Next.js router zamiast window.location
@@ -24,7 +24,7 @@ export const LoginForm = () => {
     try {
       console.log("Rozpoczynam logowanie..."); // Debug
 
-      const recaptchaToken = await verifyRecaptcha("login");
+      //const recaptchaToken = await verifyRecaptcha("login");
       console.log("ReCAPTCHA zweryfikowana"); // Debug
 
       const response = await fetch(
@@ -35,7 +35,7 @@ export const LoginForm = () => {
           body: JSON.stringify({
             email,
             password,
-            recaptchaToken,
+            //recaptchaToken,
           }),
         }
       );

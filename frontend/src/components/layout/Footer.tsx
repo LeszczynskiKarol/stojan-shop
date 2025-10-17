@@ -1,8 +1,7 @@
 // frontend/src/components/layout/Footer.tsx
 "use client";
-import React from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 interface PowerLink {
   power: string;
@@ -100,6 +99,265 @@ export const Footer = () => {
         <div className="grid grid-cols-12 gap-4">
           {/* Moce */}
           <div className="col-span-12 lg:col-span-3">
+            {/* NOWA SEKCJA - Silniki według mocy i obrotów */}
+            <div className="col-span-12 border-b border-border pb-6 mb-6">
+              <h3 className="font-bold mb-3 text-sm">
+                Popularne silniki według mocy i obrotów
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-muted-foreground">
+                {/* 700 obr/min */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">
+                    700 obr/min
+                  </h4>
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/silniki-elektryczne-075-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      0,75 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-1-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      1,1 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-5-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      1,5 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-2-2-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      2,2 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-3-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      3 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-4-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      4 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-5-5-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      5,5 kW 700 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-7-5-kw-700-obr"
+                      className="block hover:underline"
+                    >
+                      7,5 kW 700 obr
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 900 obr/min */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">
+                    900 obr/min
+                  </h4>
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/silniki-elektryczne-075-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      0,75 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-1-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      1,1 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-5-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      1,5 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-2-2-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      2,2 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-3-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      3 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-4-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      4 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-5-5-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      5,5 kW 900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-7-5-kw-900-obr"
+                      className="block hover:underline"
+                    >
+                      7,5 kW 900 obr
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 1400 obr/min */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">
+                    1400 obr/min
+                  </h4>
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/silniki-elektryczne-075-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      0,75 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-1-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      1,1 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-5-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      1,5 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-2-2-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      2,2 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-3-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      3 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-4-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      4 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-5-5-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      5,5 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-7-5-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      7,5 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-11-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      11 kW 1400 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-18-5-kw-1400-obr"
+                      className="block hover:underline"
+                    >
+                      18,5 kW 1400 obr
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 2900 obr/min */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">
+                    2900 obr/min
+                  </h4>
+                  <div className="space-y-0.5">
+                    <Link
+                      href="/silniki-elektryczne-075-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      0,75 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-1-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      1,1 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-1-5-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      1,5 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-2-2-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      2,2 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-3-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      3 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-4-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      4 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-5-5-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      5,5 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-7-5-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      7,5 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-11-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      11 kW 2900 obr
+                    </Link>
+                    <Link
+                      href="/silniki-elektryczne-18-5-kw-2900-obr"
+                      className="block hover:underline"
+                    >
+                      18,5 kW 2900 obr
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
             <h3 className="font-bold mb-3 text-sm">Moce silników</h3>
             <div className="grid grid-cols-3 gap-2">
               {powerColumns.map((column, idx) => (

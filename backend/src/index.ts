@@ -1,33 +1,33 @@
 // backend/src/index.ts
 // ZMIANY: Dodano obsługę sitemap na poziomie root i API
 
-import 'reflect-metadata';
-import express, { Application, Request, Response, NextFunction } from 'express';
-import aiRoutes from './routes/ai.routes';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import analyticsRoutes from './routes/analytics.routes';
-import { AllegroEventSyncService } from './services/allegroEventSync.service';
+import express, { Application, NextFunction, Request, Response } from 'express';
+import 'reflect-metadata';
 import { AppDataSource } from './config/database';
-import { WebhookController } from './controllers/webhook.controller';
-import { ProductController } from './controllers/product.controller';
 import { CategoryController } from './controllers/category.controller';
-import uploadRoutes from './routes/upload.routes';
-import blogRoutes from './routes/blog.routes';
-import productRoutes from './routes/product.routes';
+import { ProductController } from './controllers/product.controller';
+import { WebhookController } from './controllers/webhook.controller';
 import { sessionMiddleware } from './middlewares/session.middleware';
-import manufacturerRoutes from './routes/manufacturer.routes';
-import userRoutes from './routes/user.routes';
-import sitemapRoutes from './routes/sitemap.routes';
-import orderRoutes from './routes/order.routes';
-import allegroProductsRoutes from './routes/allegroProducts.routes';
-import categoryRoutes from './routes/category.routes';
-import proxyRoutes from './routes/proxy.routes';
-import legalRoutes from './routes/legal.routes';
-import shippingRoutes from './routes/shipping.routes';
+import aiRoutes from './routes/ai.routes';
 import allegroRoutes from './routes/allegro.routes';
+import allegroProductsRoutes from './routes/allegroProducts.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import blogRoutes from './routes/blog.routes';
+import categoryRoutes from './routes/category.routes';
+import legalRoutes from './routes/legal.routes';
+import manufacturerRoutes from './routes/manufacturer.routes';
 import olxRoutes from './routes/olx.routes';
+import orderRoutes from './routes/order.routes';
+import productRoutes from './routes/product.routes';
+import proxyRoutes from './routes/proxy.routes';
+import shippingRoutes from './routes/shipping.routes';
+import sitemapRoutes from './routes/sitemap.routes';
 import taskRoutes from './routes/task.routes';
+import uploadRoutes from './routes/upload.routes';
+import userRoutes from './routes/user.routes';
+import { AllegroEventSyncService } from './services/allegroEventSync.service';
 
 // Obsługa niezłapanych błędów
 process.on('uncaughtException', (error: Error) => {
@@ -73,6 +73,7 @@ app.use(
             'https://app-reactapp.ngrok.app',
             'http://localhost:3000',
             'https://www.silniki-elektryczne.com.pl',
+            'https://server-reactapp.ngrok.app',
           ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

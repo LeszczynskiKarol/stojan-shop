@@ -1,8 +1,9 @@
 // frontend/src/middleware.ts
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const POWER_PAGES = [
+  // Podstawowe moce
   "/silniki-elektryczne-009-kw",
   "/silniki-elektryczne-012-kw",
   "/silniki-elektryczne-018-kw",
@@ -26,6 +27,88 @@ const POWER_PAGES = [
   "/silniki-elektryczne-110-kw",
   "/silniki-elektryczne-160-kw",
   "/silniki-elektryczne-200-kw",
+
+  // MOC + OBROTY (do 18.5 kW)
+  // 0.09 kW
+  "/silniki-elektryczne-009-kw-700-obr",
+  "/silniki-elektryczne-009-kw-900-obr",
+  "/silniki-elektryczne-009-kw-1400-obr",
+  "/silniki-elektryczne-009-kw-2900-obr",
+  // 0.12 kW
+  "/silniki-elektryczne-012-kw-700-obr",
+  "/silniki-elektryczne-012-kw-900-obr",
+  "/silniki-elektryczne-012-kw-1400-obr",
+  "/silniki-elektryczne-012-kw-2900-obr",
+  // 0.18 kW
+  "/silniki-elektryczne-018-kw-700-obr",
+  "/silniki-elektryczne-018-kw-900-obr",
+  "/silniki-elektryczne-018-kw-1400-obr",
+  "/silniki-elektryczne-018-kw-2900-obr",
+  // 0.25 kW
+  "/silniki-elektryczne-025-kw-700-obr",
+  "/silniki-elektryczne-025-kw-900-obr",
+  "/silniki-elektryczne-025-kw-1400-obr",
+  "/silniki-elektryczne-025-kw-2900-obr",
+  // 0.37 kW
+  "/silniki-elektryczne-037-kw-700-obr",
+  "/silniki-elektryczne-037-kw-900-obr",
+  "/silniki-elektryczne-037-kw-1400-obr",
+  "/silniki-elektryczne-037-kw-2900-obr",
+  // 0.55 kW
+  "/silniki-elektryczne-055-kw-700-obr",
+  "/silniki-elektryczne-055-kw-900-obr",
+  "/silniki-elektryczne-055-kw-1400-obr",
+  "/silniki-elektryczne-055-kw-2900-obr",
+  // 0.75 kW
+  "/silniki-elektryczne-075-kw-700-obr",
+  "/silniki-elektryczne-075-kw-900-obr",
+  "/silniki-elektryczne-075-kw-1400-obr",
+  "/silniki-elektryczne-075-kw-2900-obr",
+  // 1.1 kW
+  "/silniki-elektryczne-1-1-kw-700-obr",
+  "/silniki-elektryczne-1-1-kw-900-obr",
+  "/silniki-elektryczne-1-1-kw-1400-obr",
+  "/silniki-elektryczne-1-1-kw-2900-obr",
+  // 1.5 kW
+  "/silniki-elektryczne-1-5-kw-700-obr",
+  "/silniki-elektryczne-1-5-kw-900-obr",
+  "/silniki-elektryczne-1-5-kw-1400-obr",
+  "/silniki-elektryczne-1-5-kw-2900-obr",
+  // 2.2 kW
+  "/silniki-elektryczne-2-2-kw-700-obr",
+  "/silniki-elektryczne-2-2-kw-900-obr",
+  "/silniki-elektryczne-2-2-kw-1400-obr",
+  "/silniki-elektryczne-2-2-kw-2900-obr",
+  // 3 kW
+  "/silniki-elektryczne-3-kw-700-obr",
+  "/silniki-elektryczne-3-kw-900-obr",
+  "/silniki-elektryczne-3-kw-1400-obr",
+  "/silniki-elektryczne-3-kw-2900-obr",
+  // 4 kW
+  "/silniki-elektryczne-4-kw-700-obr",
+  "/silniki-elektryczne-4-kw-900-obr",
+  "/silniki-elektryczne-4-kw-1400-obr",
+  "/silniki-elektryczne-4-kw-2900-obr",
+  // 5.5 kW
+  "/silniki-elektryczne-5-5-kw-700-obr",
+  "/silniki-elektryczne-5-5-kw-900-obr",
+  "/silniki-elektryczne-5-5-kw-1400-obr",
+  "/silniki-elektryczne-5-5-kw-2900-obr",
+  // 7.5 kW
+  "/silniki-elektryczne-7-5-kw-700-obr",
+  "/silniki-elektryczne-7-5-kw-900-obr",
+  "/silniki-elektryczne-7-5-kw-1400-obr",
+  "/silniki-elektryczne-7-5-kw-2900-obr",
+  // 11 kW
+  "/silniki-elektryczne-11-kw-700-obr",
+  "/silniki-elektryczne-11-kw-900-obr",
+  "/silniki-elektryczne-11-kw-1400-obr",
+  "/silniki-elektryczne-11-kw-2900-obr",
+  // 18.5 kW
+  "/silniki-elektryczne-18-5-kw-700-obr",
+  "/silniki-elektryczne-18-5-kw-900-obr",
+  "/silniki-elektryczne-18-5-kw-1400-obr",
+  "/silniki-elektryczne-18-5-kw-2900-obr",
 ];
 
 const STATIC_PATHS = [

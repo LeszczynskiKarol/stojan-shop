@@ -1,6 +1,6 @@
 // backend/src/middlewares/recaptcha.middleware.ts
-import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
+import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env.config';
 
 interface RecaptchaResponse {

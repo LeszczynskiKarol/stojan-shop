@@ -1,14 +1,14 @@
 // frontend/src/components/ui/PaginationPage.tsx
-import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useShopStore } from "@/store/shopStore";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { useShopStore } from "@/store/shopStore";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface PaginationPageProps {
   currentPage: number;

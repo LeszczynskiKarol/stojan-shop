@@ -1,8 +1,8 @@
 // frontend/src/components/shop/ProductGrid.tsx
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { IProduct } from "@/types/product.types";
 import React from "react";
 import { ProductCard } from "./ProductCard";
-import { IProduct } from "@/types/product.types";
-import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface ProductGridProps {
   products: IProduct[];

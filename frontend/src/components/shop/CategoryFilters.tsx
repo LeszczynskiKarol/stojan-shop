@@ -1,12 +1,12 @@
 // frontend/src/components/shop/CategoryFilters.tsx
 "use client";
-import { useEffect, useState } from "react";
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useShopStore } from "@/store/shopStore";
 import { Input } from "@/components/ui/Input";
-import { motion, AnimatePresence } from "framer-motion";
+import { Slider } from "@/components/ui/slider";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useShopStore } from "@/store/shopStore";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 type FilterField = "power" | "rpm" | "shaftDiameter";
 

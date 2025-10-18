@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import Head from "next/head";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CategorySchema } from "./CategorySchema";
 
 interface CategoryPageClientProps {
   categoryMapper: Record<string, string>;
@@ -692,268 +693,156 @@ export default function CategoryPageClient({
     }, [powerProducts]);
 
     return (
-      <div className="container mx-auto px-4 py-8">
-        {/* POPRAWIONE BREADCRUMBS */}
-        <Breadcrumbs
-          items={[
-            { label: "Strona główna", href: "/" },
-            { label: `Silniki elektryczne ${formatPower(powerValue)} kW` },
-          ]}
-        />
-
-        <h1 className="text-4xl font-bold mb-4">
-          Silniki elektryczne {formatPower(powerValue)} kW
-          {powerConfig?.rpmLabel && ` ${powerConfig.rpmLabel} obr/min`}
-        </h1>
-
-        {!powerLoading && (
-          <p className="text-muted-foreground mb-8">
-            Znaleziono {powerTotal}{" "}
-            {powerTotal === 1
-              ? "produkt"
-              : powerTotal < 5
-              ? "produkty"
-              : "produktów"}{" "}
-            o mocy {formatPower(powerValue)} kW
-            {powerConfig?.rpmLabel &&
-              ` z prędkością około ${powerConfig.rpmLabel} obr/min`}
-          </p>
+      <>
+        {powerProducts.length > 0 && (
+          <CategorySchema
+            categoryName={`Silniki elektryczne ${formatPower(powerValue)} kW${
+              powerConfig?.rpmLabel ? ` ${powerConfig.rpmLabel} obr/min` : ""
+            }`}
+            products={powerProducts.slice(0, 20).map((p) => ({
+              name: p.name,
+              price: p.marketplaces?.ownStore?.price || 0,
+              image: p.mainImage || p.images[0],
+              categorySlug: p.categories?.[0]?.slug || "",
+              productSlug: p.marketplaces?.ownStore?.slug || "",
+            }))}
+          />
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* ROZBUDOWANE I POPRAWIONE FILTRY */}
-          <aside className="lg:w-64">
-            <div className="bg-card rounded-lg shadow-sm sticky top-4">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-semibold">Filtrowanie</h3>
-              </div>
+        <div className="container mx-auto px-4 py-8">
+          {/* POPRAWIONE BREADCRUMBS */}
+          <Breadcrumbs
+            items={[
+              { label: "Strona główna", href: "/" },
+              { label: `Silniki elektryczne ${formatPower(powerValue)} kW` },
+            ]}
+          />
 
-              <div className="p-4 space-y-6">
-                {/* Przedział obrotów - SUWAK + PRZYCISKI */}
-                <div>
-                  <label className="font-medium block mb-3">
-                    Przedział obrotów (obr/min)
-                  </label>
+          <h1 className="text-4xl font-bold mb-4">
+            Silniki elektryczne {formatPower(powerValue)} kW
+            {powerConfig?.rpmLabel && ` ${powerConfig.rpmLabel} obr/min`}
+          </h1>
 
-                  {/* Przyciski szybkiego wyboru */}
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    {[700, 900, 1400, 2900].map((rpm) => (
-                      <button
-                        key={rpm}
-                        onClick={() => {
-                          const isActive =
-                            powerFilters.rpmMin === rpm - 100 &&
-                            powerFilters.rpmMax === rpm + 100;
-                          setPowerFilters((prev) => ({
-                            ...prev,
-                            rpmMin: isActive ? undefined : rpm - 100,
-                            rpmMax: isActive ? undefined : rpm + 100,
-                          }));
-                        }}
-                        className={`px-3 py-2 text-sm rounded-md border transition-all
+          {!powerLoading && (
+            <p className="text-muted-foreground mb-8">
+              Znaleziono {powerTotal}{" "}
+              {powerTotal === 1
+                ? "produkt"
+                : powerTotal < 5
+                ? "produkty"
+                : "produktów"}{" "}
+              o mocy {formatPower(powerValue)} kW
+              {powerConfig?.rpmLabel &&
+                ` z prędkością około ${powerConfig.rpmLabel} obr/min`}
+            </p>
+          )}
+
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* ROZBUDOWANE I POPRAWIONE FILTRY */}
+            <aside className="lg:w-64">
+              <div className="bg-card rounded-lg shadow-sm sticky top-4">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-semibold">Filtrowanie</h3>
+                </div>
+
+                <div className="p-4 space-y-6">
+                  {/* Przedział obrotów - SUWAK + PRZYCISKI */}
+                  <div>
+                    <label className="font-medium block mb-3">
+                      Przedział obrotów (obr/min)
+                    </label>
+
+                    {/* Przyciski szybkiego wyboru */}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {[700, 900, 1400, 2900].map((rpm) => (
+                        <button
+                          key={rpm}
+                          onClick={() => {
+                            const isActive =
+                              powerFilters.rpmMin === rpm - 100 &&
+                              powerFilters.rpmMax === rpm + 100;
+                            setPowerFilters((prev) => ({
+                              ...prev,
+                              rpmMin: isActive ? undefined : rpm - 100,
+                              rpmMax: isActive ? undefined : rpm + 100,
+                            }));
+                          }}
+                          className={`px-3 py-2 text-sm rounded-md border transition-all
                         ${
                           powerFilters.rpmMin === rpm - 100 &&
                           powerFilters.rpmMax === rpm + 100
                             ? "bg-primary text-primary-foreground border-primary shadow-sm"
                             : "border-gray-200 hover:border-primary hover:bg-gray-50"
                         }`}
-                      >
-                        {rpm}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Producent */}
-                <div>
-                  <label className="font-medium block mb-2">Producent</label>
-                  <select
-                    value={powerFilters.manufacturer || ""}
-                    onChange={(e) =>
-                      setPowerFilters((prev) => ({
-                        ...prev,
-                        manufacturer: e.target.value,
-                      }))
-                    }
-                    className="w-full p-2.5 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                  >
-                    <option value="">Wszyscy producenci</option>
-                    {manufacturers.map((manufacturer) => (
-                      <option key={manufacturer} value={manufacturer}>
-                        {manufacturer} (
-                        {
-                          powerProducts.filter(
-                            (p) => p.manufacturer === manufacturer
-                          ).length
-                        }
-                        )
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Stan - DODANY NIEUŻYWANY */}
-                <div>
-                  <label className="font-medium block mb-2">Stan</label>
-                  <div className="space-y-2">
-                    {[
-                      { value: "", label: "Wszystkie" },
-                      { value: "nowy", label: "Nowy" },
-                      { value: "uzywany", label: "Używany" },
-                      { value: "nieuzywany", label: "Nieużywany" },
-                    ].map((option) => (
-                      <label
-                        key={option.value}
-                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-                      >
-                        <input
-                          type="radio"
-                          name="condition"
-                          value={option.value}
-                          checked={powerFilters.condition === option.value}
-                          onChange={(e) =>
-                            setPowerFilters((prev) => ({
-                              ...prev,
-                              condition: e.target.value,
-                            }))
-                          }
-                          className="text-primary focus:ring-primary"
-                        />
-                        <span className="text-sm">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Reset filtrów */}
-                {(powerFilters.condition ||
-                  powerFilters.rpmMin ||
-                  powerFilters.manufacturer) && (
-                  <button
-                    onClick={() =>
-                      setPowerFilters({
-                        manufacturer: "",
-                        condition: "",
-                        rpmMin: undefined,
-                        rpmMax: undefined,
-                      })
-                    }
-                    className="w-full px-4 py-2.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center gap-2"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                    Usuń filtry
-                  </button>
-                )}
-              </div>
-            </div>
-          </aside>
-
-          {/* Produkty */}
-          <div className="flex-1">
-            {/* Nagłówek z sortowaniem */}
-            {!powerLoading && powerProducts.length > 0 && (
-              <div className="bg-background rounded-lg shadow-sm p-4 mb-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <p className="text-sm text-gray-600">
-                    Wyświetlanie{" "}
-                    <span className="font-semibold">
-                      {currentPage * 20 + 1}-
-                      {Math.min((currentPage + 1) * 20, powerTotal)}
-                    </span>{" "}
-                    z <span className="font-semibold">{powerTotal}</span>{" "}
-                    produktów
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">Sortuj:</label>
-                    <select
-                      className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      value={searchParams.get("sort") || "relevance"}
-                      onChange={(e) => {
-                        const params = new URLSearchParams(
-                          searchParams.toString()
-                        );
-                        params.set("sort", e.target.value);
-                        router.push(`/${resolvedSlug}?${params.toString()}`);
-                      }}
-                    >
-                      <option value="relevance">Trafność</option>
-                      <option value="price_asc">Cena: rosnąco</option>
-                      <option value="price_desc">Cena: malejąco</option>
-                      <option value="power_asc">Moc: rosnąco</option>
-                      <option value="power_desc">Moc: malejąco</option>
-                      <option value="newest">Najnowsze</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Ładowanie */}
-            {powerLoading && (
-              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow-sm">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-gray-600">Wyszukiwanie produktów...</p>
-              </div>
-            )}
-
-            {/* Lista produktów */}
-            {!powerLoading && powerProducts.length > 0 && (
-              <>
-                <ProductGrid products={powerProducts} />
-
-                {totalPages > 1 && (
-                  <div className="mt-8">
-                    <PaginationPage
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      categorySlug={resolvedSlug}
-                    />
-
-                    <div className="text-sm text-gray-500 text-center mt-4">
-                      Strona {currentPage + 1} z {totalPages}
+                        >
+                          {rpm}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                )}
-              </>
-            )}
 
-            {/* Brak wyników */}
-            {!powerLoading && powerProducts.length === 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <div className="max-w-md mx-auto">
-                  <svg
-                    className="w-16 h-16 text-gray-300 mx-auto mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="text-xl font-semibold text-gray-800 mb-2">
-                    Brak produktów
-                  </p>
-                  <p className="text-gray-600">
-                    Nie znaleźliśmy produktów o mocy {formatPower(powerValue)}{" "}
-                    kW spełniających wybrane kryteria
-                  </p>
+                  {/* Producent */}
+                  <div>
+                    <label className="font-medium block mb-2">Producent</label>
+                    <select
+                      value={powerFilters.manufacturer || ""}
+                      onChange={(e) =>
+                        setPowerFilters((prev) => ({
+                          ...prev,
+                          manufacturer: e.target.value,
+                        }))
+                      }
+                      className="w-full p-2.5 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    >
+                      <option value="">Wszyscy producenci</option>
+                      {manufacturers.map((manufacturer) => (
+                        <option key={manufacturer} value={manufacturer}>
+                          {manufacturer} (
+                          {
+                            powerProducts.filter(
+                              (p) => p.manufacturer === manufacturer
+                            ).length
+                          }
+                          )
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Stan - DODANY NIEUŻYWANY */}
+                  <div>
+                    <label className="font-medium block mb-2">Stan</label>
+                    <div className="space-y-2">
+                      {[
+                        { value: "", label: "Wszystkie" },
+                        { value: "nowy", label: "Nowy" },
+                        { value: "uzywany", label: "Używany" },
+                        { value: "nieuzywany", label: "Nieużywany" },
+                      ].map((option) => (
+                        <label
+                          key={option.value}
+                          className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                        >
+                          <input
+                            type="radio"
+                            name="condition"
+                            value={option.value}
+                            checked={powerFilters.condition === option.value}
+                            onChange={(e) =>
+                              setPowerFilters((prev) => ({
+                                ...prev,
+                                condition: e.target.value,
+                              }))
+                            }
+                            className="text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reset filtrów */}
                   {(powerFilters.condition ||
                     powerFilters.rpmMin ||
                     powerFilters.manufacturer) && (
@@ -966,17 +855,146 @@ export default function CategoryPageClient({
                           rpmMax: undefined,
                         })
                       }
-                      className="mt-6 px-6 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                      className="w-full px-4 py-2.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors flex items-center justify-center gap-2"
                     >
-                      Usuń filtry i spróbuj ponownie
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      Usuń filtry
                     </button>
                   )}
                 </div>
               </div>
-            )}
+            </aside>
+
+            {/* Produkty */}
+            <div className="flex-1">
+              {/* Nagłówek z sortowaniem */}
+              {!powerLoading && powerProducts.length > 0 && (
+                <div className="bg-background rounded-lg shadow-sm p-4 mb-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <p className="text-sm text-gray-600">
+                      Wyświetlanie{" "}
+                      <span className="font-semibold">
+                        {currentPage * 20 + 1}-
+                        {Math.min((currentPage + 1) * 20, powerTotal)}
+                      </span>{" "}
+                      z <span className="font-semibold">{powerTotal}</span>{" "}
+                      produktów
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-600">Sortuj:</label>
+                      <select
+                        className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        value={searchParams.get("sort") || "relevance"}
+                        onChange={(e) => {
+                          const params = new URLSearchParams(
+                            searchParams.toString()
+                          );
+                          params.set("sort", e.target.value);
+                          router.push(`/${resolvedSlug}?${params.toString()}`);
+                        }}
+                      >
+                        <option value="relevance">Trafność</option>
+                        <option value="price_asc">Cena: rosnąco</option>
+                        <option value="price_desc">Cena: malejąco</option>
+                        <option value="power_asc">Moc: rosnąco</option>
+                        <option value="power_desc">Moc: malejąco</option>
+                        <option value="newest">Najnowsze</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Ładowanie */}
+              {powerLoading && (
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg shadow-sm">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                  <p className="text-gray-600">Wyszukiwanie produktów...</p>
+                </div>
+              )}
+
+              {/* Lista produktów */}
+              {!powerLoading && powerProducts.length > 0 && (
+                <>
+                  <ProductGrid products={powerProducts} />
+
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <PaginationPage
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        categorySlug={resolvedSlug}
+                      />
+
+                      <div className="text-sm text-gray-500 text-center mt-4">
+                        Strona {currentPage + 1} z {totalPages}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Brak wyników */}
+              {!powerLoading && powerProducts.length === 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                  <div className="max-w-md mx-auto">
+                    <svg
+                      className="w-16 h-16 text-gray-300 mx-auto mb-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-xl font-semibold text-gray-800 mb-2">
+                      Brak produktów
+                    </p>
+                    <p className="text-gray-600">
+                      Nie znaleźliśmy produktów o mocy {formatPower(powerValue)}{" "}
+                      kW spełniających wybrane kryteria
+                    </p>
+                    {(powerFilters.condition ||
+                      powerFilters.rpmMin ||
+                      powerFilters.manufacturer) && (
+                      <button
+                        onClick={() =>
+                          setPowerFilters({
+                            manufacturer: "",
+                            condition: "",
+                            rpmMin: undefined,
+                            rpmMax: undefined,
+                          })
+                        }
+                        className="mt-6 px-6 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                      >
+                        Usuń filtry i spróbuj ponownie
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -1269,6 +1287,19 @@ export default function CategoryPageClient({
 
   return (
     <>
+      {!isPowerPage && category && products.length > 0 && (
+        <CategorySchema
+          categoryName={category.name}
+          products={products.slice(0, 20).map((p) => ({
+            name: p.name,
+            price: p.marketplaces?.ownStore?.price || 0,
+            image: p.mainImage || p.images[0],
+            categorySlug: p.categories?.[0]?.slug || "",
+            productSlug: p.marketplaces?.ownStore?.slug || "",
+          }))}
+        />
+      )}
+
       <Head>
         {/* Blokowanie indeksowania stron z filtrami */}
         {hasActiveFilters() && <meta name="robots" content="noindex, follow" />}

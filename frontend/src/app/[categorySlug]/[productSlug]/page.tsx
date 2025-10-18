@@ -1,8 +1,9 @@
 // frontend/src/app/[categorySlug]/[productSlug]/page.tsx
-import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
 import { ProductDetails } from "@/components/shop/ProductDetails";
 import { Metadata } from "next";
-import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
+import { notFound } from "next/navigation";
+import { ProductSchema } from "./ProductSchema";
 
 type GenerateMetadataProps = {
   params: Promise<{
@@ -63,6 +64,12 @@ export async function generateMetadata({
           : [],
       },
       keywords: product.marketplaces?.ownStore?.seo?.keywords?.join(", "),
+      // ⬇️⬇️⬇️ DODAJ TO ⬇️⬇️⬇️
+      other: {
+        "product:price:amount":
+          product.marketplaces?.ownStore?.price?.toString() || "0",
+        "product:price:currency": "PLN",
+      },
     };
   } catch (error) {
     console.error("Błąd podczas generowania metadanych:", error);
@@ -106,22 +113,47 @@ export default async function ProductPage({
     }
 
     return (
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <div className="container mx-auto px-4 mb-6">
-          <Breadcrumbs
-            items={[
-              {
-                label: data.data.categories[0]?.name || "Kategoria",
-                href: `/${resolvedParams.categorySlug}`,
-              },
-              {
-                label: data.data.name,
-              },
-            ]}
-          />
+      <>
+        {/* ⬇️⬇️⬇️ DODAJ SCHEMA ⬇️⬇️⬇️ */}
+        <ProductSchema
+          product={{
+            name: data.data.name,
+            description: data.data.description || data.data.name,
+            price: data.data.marketplaces?.ownStore?.price || 0,
+            image: data.data.mainImage || data.data.images[0],
+            sku: data.data.sku || data.data._id || data.data.id,
+            manufacturer: data.data.manufacturer || "Stojan",
+            condition:
+              data.data.condition === "nowy"
+                ? "new"
+                : data.data.condition === "uzywany"
+                ? "used"
+                : "refurbished",
+            inStock: (data.data.stock || 0) > 0,
+            url: `https://silniki-elektryczne.com.pl/${resolvedParams.categorySlug}/${resolvedParams.productSlug}`,
+            categorySlug: resolvedParams.categorySlug,
+            productSlug: resolvedParams.productSlug,
+          }}
+        />
+        {/* ⬆️⬆️⬆️ KONIEC DODANIA ⬆️⬆️⬆️ */}
+
+        <div className="container mx-auto py-8 px-4 flex-grow">
+          <div className="container mx-auto px-4 mb-6">
+            <Breadcrumbs
+              items={[
+                {
+                  label: data.data.categories[0]?.name || "Kategoria",
+                  href: `/${resolvedParams.categorySlug}`,
+                },
+                {
+                  label: data.data.name,
+                },
+              ]}
+            />
+          </div>
+          <ProductDetails product={data.data} />
         </div>
-        <ProductDetails product={data.data} />
-      </div>
+      </>
     );
   } catch (error) {}
 }

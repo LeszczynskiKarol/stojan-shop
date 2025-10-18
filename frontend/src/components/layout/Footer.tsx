@@ -431,6 +431,7 @@ export const Footer = () => {
                 "Warunki zwrotu",
                 "Polityka prywatnosci",
                 "Przetwarzanie danych osobowych",
+                "Blog",
               ].map((item) => (
                 <Link
                   href={`/${item.toLowerCase().replace(/ /g, "-")}`}

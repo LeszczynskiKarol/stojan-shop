@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/jquery": "^3.5.33",
     "@types/lodash": "^4.17.13",
     "@types/node": "^20",

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 async function getBlogPosts() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog`, {
-      cache: "no-store",
+      next: { revalidate: 60 }, // Odśwież co 60 sekund (ISR)
     });
 
     if (!res.ok) {

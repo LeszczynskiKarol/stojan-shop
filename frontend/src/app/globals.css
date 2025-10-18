@@ -48,11 +48,157 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: "Inter", sans-serif;
   }
 }
+
+/* ============================================
+   BLOG POST TYPOGRAPHY STYLES
+   ============================================ */
+
+/* Dodatkowe style dla WordPress content */
+.prose {
+  @apply text-foreground;
+}
+
+/* WordPress paragraph blocks */
+.prose .wp-block-paragraph {
+  @apply mb-6 leading-relaxed;
+}
+
+/* WordPress heading blocks */
+.prose .wp-block-heading {
+  @apply font-bold text-foreground mt-8 mb-4;
+}
+
+.prose h2.wp-block-heading {
+  @apply text-3xl mt-12 mb-6;
+}
+
+.prose h3.wp-block-heading {
+  @apply text-2xl mt-8 mb-4;
+}
+
+/* WordPress list blocks */
+.prose .wp-block-list,
+.prose ul,
+.prose ol {
+  @apply my-6 space-y-2;
+}
+
+.prose ul {
+  @apply list-disc pl-6;
+}
+
+.prose ol {
+  @apply list-decimal pl-6;
+}
+
+.prose li {
+  @apply leading-relaxed;
+}
+
+.prose li strong {
+  @apply text-foreground font-semibold;
+}
+
+/* WordPress links */
+.prose a {
+  @apply text-primary no-underline hover:underline transition-colors;
+}
+
+/* WordPress strong/bold */
+.prose strong {
+  @apply text-foreground font-semibold;
+}
+
+/* WordPress images */
+.prose img {
+  @apply rounded-lg my-8 shadow-lg;
+}
+
+.prose .wp-block-image {
+  @apply my-8;
+}
+
+/* WordPress quotes/blockquotes */
+.prose blockquote {
+  @apply border-l-4 border-primary pl-4 italic my-6 text-muted-foreground;
+}
+
+/* WordPress code blocks */
+.prose code {
+  @apply bg-muted text-primary px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-muted border border-border rounded-lg p-4 overflow-x-auto my-6;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
+
+/* WordPress comment cleanup (invisible) */
+.prose p:empty {
+  @apply hidden;
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  .prose {
+    @apply text-base;
+  }
+
+  .prose h2 {
+    @apply text-2xl;
+  }
+
+  .prose h3 {
+    @apply text-xl;
+  }
+}
+
+/* Dark mode adjustments */
+.dark .prose {
+  @apply text-foreground;
+}
+
+.dark .prose a {
+  @apply text-primary;
+}
+
+.dark .prose strong {
+  @apply text-foreground;
+}
+
+.dark .prose code {
+  @apply bg-muted text-primary;
+}
+
+.dark .prose pre {
+  @apply bg-muted border-border;
+}
+
+.dark .prose blockquote {
+  @apply text-muted-foreground border-primary;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  @apply text-foreground;
+}
+
+/* ============================================
+   ORIGINAL STYLES
+   ============================================ */
 
 .slider-tooltip {
   transition: all 0.2s ease;
@@ -99,6 +245,7 @@ header[data-collapsed="true"] {
     transform: translateY(-52px);
     opacity: 0.95;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

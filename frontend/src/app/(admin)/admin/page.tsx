@@ -1,29 +1,25 @@
 // frontend/src/app/(admin)/admin/page.tsx
 "use client";
-import { TaskBoard } from "@/components/admin/TaskBoard";
-import Link from "next/link";
-import { Shield } from "lucide-react";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { FileText, Shield } from "lucide-react";
+import Link from "next/link";
 //import InventoryAlerts from "@/components/admin/InventoryAlerts";
-import QRCode from "react-qr-code";
 import { useAuthStore } from "@/store/authStore";
-import {
-  Zap,
-  Package,
-  PlusCircle,
-  ClipboardList,
-  RotateCw,
-  TrendingUp,
-  ShoppingBag,
-  Archive,
-  Clock,
-} from "lucide-react";
-import { useProductStore } from "@/store/productStore";
 import { useOrderStore } from "@/store/orderStore";
-import { useEffect, useState } from "react";
+import { useProductStore } from "@/store/productStore";
 import { Order } from "@/types/order.types";
 import { IProduct } from "@/types/product.types";
+import {
+  Clock,
+  Package,
+  PlusCircle,
+  ShoppingBag,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import QRCode from "react-qr-code";
 
 interface DashboardStats {
   totalProducts: number;
@@ -339,6 +335,16 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-semibold mb-2">Analityka</h2>
             <p className="text-sm text-muted-foreground">
               Przeglądaj sesje userów i statysyki ruchu
+            </p>
+          </div>
+        </Link>
+        <Link href="/admin/blog">
+          <div className="group relative overflow-hidden rounded-xl bg-card p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl border hover:border-primary">
+            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 transition-all duration-300 group-hover:scale-150" />
+            <FileText className="h-12 w-12 text-primary mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Blog</h2>
+            <p className="text-sm text-muted-foreground">
+              Zarządzaj postami blogowymi
             </p>
           </div>
         </Link>

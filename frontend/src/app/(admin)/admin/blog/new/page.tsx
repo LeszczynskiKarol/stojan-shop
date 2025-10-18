@@ -1,4 +1,4 @@
-// frontend/src/app/(admin)/admin/blog/[id]/edit/page.tsx
+// frontend/src/app/(admin)/admin/blog/new/page.tsx
 "use client";
 
 import { BlogImageUpload } from "@/components/blog/BlogImageUpload";
@@ -9,14 +9,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useBlogStore } from "@/store/blogStore";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 
-export default function EditBlogPostPage() {
+export default function NewBlogPostPage() {
   const router = useRouter();
-  const params = useParams();
   const { toast } = useToast();
-  const { updatePost, getPostById, loading } = useBlogStore();
+  const { createPost, loading } = useBlogStore();
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [formData, setFormData] = useState({
@@ -27,43 +26,6 @@ export default function EditBlogPostPage() {
     tags: "",
     featuredImage: "",
   });
-
-  const [loadingPost, setLoadingPost] = useState(true);
-
-  useEffect(() => {
-    const loadPost = async () => {
-      // Zabezpieczenie przed nieprawidłowym ID
-      if (!params.id || params.id === "new") {
-        router.push("/admin/blog");
-        return;
-      }
-
-      try {
-        const post = await getPostById(params.id as string);
-        setFormData({
-          title: post.title,
-          content: post.content,
-          excerpt: post.excerpt || "",
-          author: post.author || "",
-          tags: post.tags?.join(", ") || "",
-          featuredImage: post.featuredImage || "",
-        });
-      } catch (error) {
-        toast({
-          title: "Błąd",
-          description: "Nie udało się załadować posta",
-          variant: "destructive",
-        });
-        router.push("/admin/blog");
-      } finally {
-        setLoadingPost(false);
-      }
-    };
-
-    if (params.id) {
-      loadPost();
-    }
-  }, [params.id, router, getPostById, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +40,7 @@ export default function EditBlogPostPage() {
     }
 
     try {
-      await updatePost(params.id as string, {
+      await createPost({
         ...formData,
         tags: formData.tags
           .split(",")
@@ -88,7 +50,7 @@ export default function EditBlogPostPage() {
 
       toast({
         title: "Sukces",
-        description: "Post został zaktualizowany",
+        description: "Post został utworzony",
       });
 
       router.push("/admin/blog");
@@ -98,7 +60,7 @@ export default function EditBlogPostPage() {
         description:
           error instanceof Error
             ? error.message
-            : "Nie udało się zaktualizować posta",
+            : "Nie udało się utworzyć posta",
         variant: "destructive",
       });
     }
@@ -142,14 +104,6 @@ export default function EditBlogPostPage() {
     });
   };
 
-  if (loadingPost) {
-    return (
-      <div className="p-6">
-        <div className="text-center py-10">Ładowanie posta...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -158,7 +112,7 @@ export default function EditBlogPostPage() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">Edytuj post blogowy</h1>
+        <h1 className="text-2xl font-bold">Nowy post blogowy</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -244,7 +198,7 @@ export default function EditBlogPostPage() {
 
         <div className="flex gap-4">
           <Button type="submit" disabled={loading}>
-            {loading ? "Zapisywanie..." : "Zapisz zmiany"}
+            {loading ? "Tworzenie..." : "Utwórz post"}
           </Button>
           <Link href="/admin/blog">
             <Button type="button" variant="outline">

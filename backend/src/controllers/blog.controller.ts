@@ -1,16 +1,42 @@
 // backend/src/controllers/blog.controller.ts
+import axios from 'axios';
 import { Request, Response } from 'express';
+import slugify from 'slugify';
 import { AppDataSource } from '../config/database';
 import { BlogPost } from '../entities/BlogPost';
-import axios from 'axios';
-import slugify from 'slugify';
 
 export class BlogController {
   private repository = AppDataSource.getRepository(BlogPost);
 
+  // NOWA METODA - Pobieranie po ID (UUID)
+  getById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const post = await this.repository.findOne({ where: { id } });
+      if (!post) {
+        res.status(404).json({ error: 'Wpis nie znaleziony' });
+        return;
+      }
+      res.json(post);
+    } catch (error) {
+      console.error('Błąd pobierania posta po ID:', error);
+      res.status(500).json({ error: 'Błąd serwera' });
+    }
+  };
+
   getBySlug = async (req: Request, res: Response): Promise<void> => {
     try {
       const { slug } = req.params;
+      const RESERVED_SLUGS = ['new', 'edit', 'create', 'admin', 'import'];
+      if (RESERVED_SLUGS.includes(slug)) {
+        res.status(400).json({
+          error: 'Nieprawidłowy slug',
+          message: 'Ten slug jest zarezerwowany przez system',
+        });
+        return;
+      }
+
       const post = await this.repository.findOne({ where: { slug } });
       if (!post) {
         res.status(404).json({ error: 'Wpis nie znaleziony' });

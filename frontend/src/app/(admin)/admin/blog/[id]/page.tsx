@@ -4,16 +4,25 @@
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/use-toast";
 import { useBlogStore } from "@/store/blogStore";
+import { BlogPost } from "@/types/blog.types";
 import { ArrowLeft, Calendar, Edit2, Tag, Trash2, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BlogPost } from "../../../../../types/blog.types";
 
 export default function BlogPostDetailPage() {
   const router = useRouter();
   const params = useParams();
+
+  // ⚡ KRYTYCZNE: Early return dla "new" i "edit" - PRZED wszystkim!
+  if (params.id === "new" || params.id === "edit") {
+    if (typeof window !== "undefined") {
+      router.push("/admin/blog");
+    }
+    return null;
+  }
+
   const { toast } = useToast();
   const { getPostById, deletePost } = useBlogStore();
 
@@ -21,6 +30,13 @@ export default function BlogPostDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // ⚡ KRYTYCZNE: Blokuj "new" i "edit" NA SAMYM POCZĄTKU!
+    if (!params.id || params.id === "new" || params.id === "edit") {
+      router.push("/admin/blog");
+      setLoading(false);
+      return; // WAŻNE: return PRZED loadPost()
+    }
+
     const loadPost = async () => {
       try {
         const postData = await getPostById(params.id as string);
@@ -37,10 +53,8 @@ export default function BlogPostDetailPage() {
       }
     };
 
-    if (params.id) {
-      loadPost();
-    }
-  }, [params.id]);
+    loadPost(); // Wywołaj loadPost TYLKO jeśli nie ma early return
+  }, [params.id, router, getPostById, toast]);
 
   const handleDelete = async () => {
     if (!post) return;

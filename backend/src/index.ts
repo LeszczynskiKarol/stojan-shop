@@ -133,6 +133,7 @@ const RESERVED_SLUGS = [
   'pages',
   'allegro',
   'olx',
+  'blog',
   'import',
   'manufacturer',
   'legal',

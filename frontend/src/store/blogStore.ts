@@ -17,6 +17,7 @@ interface BlogState {
   updatePost: (id: string, post: Partial<BlogPost>) => Promise<BlogPost>;
   deletePost: (id: string) => Promise<void>;
   getPostById: (id: string) => Promise<BlogPost>;
+  getPostBySlug: (slug: string) => Promise<BlogPost>;
   importFromWordPress: (posts: any[]) => Promise<void>;
   fetchWordPressData: () => Promise<any>;
   setPage: (page: number) => void;
@@ -150,11 +151,35 @@ export const useBlogStore = create<BlogState>((set, get) => ({
     }
   },
 
+  // POPRAWIONA METODA - używa UUID zamiast slug
   getPostById: async (id) => {
     set({ loading: true, error: null });
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-      const response = await fetch(`${baseUrl}/api/blog/by-slug/${id}`);
+      const response = await fetch(`${baseUrl}/api/blog/${id}`);
+
+      if (!response.ok) {
+        throw new Error("Post nie został znaleziony");
+      }
+
+      const post = await response.json();
+      set({ loading: false });
+      return post;
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "Wystąpił błąd",
+        loading: false,
+      });
+      throw error;
+    }
+  },
+
+  // NOWA METODA - do pobierania po slug (dla publicznych stron)
+  getPostBySlug: async (slug) => {
+    set({ loading: true, error: null });
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+      const response = await fetch(`${baseUrl}/api/blog/by-slug/${slug}`);
 
       if (!response.ok) {
         throw new Error("Post nie został znaleziony");

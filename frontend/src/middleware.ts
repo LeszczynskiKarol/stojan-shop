@@ -121,6 +121,7 @@ const STATIC_PATHS = [
   "/admin",
   "/o-nas",
   "/kontakt",
+  "/skup-silnikow",
   "/regulamin",
   "/blog",
   "/admin/blog",

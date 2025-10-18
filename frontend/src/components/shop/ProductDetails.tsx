@@ -1,33 +1,29 @@
 // frontend/src/components/shop/ProductDetails.tsx
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { formatShippingDate } from "@/utils/deliveryDate";
-import {} from "@/utils/deliveryDate";
-import { useRouter } from "next/navigation";
-import { ExtendedShippingAddress } from "@/types/order.types";
-import { motion, AnimatePresence } from "framer-motion";
-import { Truck } from "lucide-react";
-import Image from "next/image";
-import { IProduct } from "@/types/product.types";
 import { Button } from "@/components/ui/Button";
 import { useCartStore } from "@/store/cartStore";
+import { ExtendedShippingAddress } from "@/types/order.types";
+import { IProduct } from "@/types/product.types";
+import { formatShippingDate } from "@/utils/deliveryDate";
+import { AnimatePresence, motion } from "framer-motion";
+import { Truck } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useState } from "react";
 //import { ModalCheckout } from "@/components/shop/ModalCheckout";
-import { CheckoutForm } from "@/components/shop/CheckoutForm";
 import { SimilarProducts } from "@/components/shop/SimilarProducts";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { cn } from "@/lib/utils";
 import {
   Check,
-  FileText,
-  CreditCard,
-  Info,
-  X,
   ChevronDown,
-  Banknote,
-  Plus,
+  FileText,
+  Info,
   Minus,
+  Plus,
+  X,
 } from "lucide-react";
-import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface PaymentMethodCardProps {
   isSelected: boolean;
@@ -929,7 +925,7 @@ export const ProductDetails = ({
             {/* Nowy kontener dla Dostawy i Wysyłki */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
               <div className="text-sm text-muted-foreground">
-                Dostawa:
+                Dostawa:{" "}
                 {shippingCosts.prepaid.toLocaleString("pl-PL", {
                   style: "currency",
                   currency: "PLN",

@@ -112,9 +112,48 @@ export default async function ProductPage({
       notFound();
     }
 
+    // ⬇️⬇️⬇️ DODAJ - OBLICZ KOSZT WYSYŁKI ⬇️⬇️⬇️
+    let shippingCost = 25; // Domyślny koszt jako fallback
+
+    try {
+      const shippingResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/shipping/calculate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            items: [
+              {
+                productId: data.data._id || data.data.id,
+                quantity: 1,
+              },
+            ],
+            paymentMethod: "prepaid",
+          }),
+          cache: "no-store",
+        }
+      );
+
+      if (shippingResponse.ok) {
+        const shippingData = await shippingResponse.json();
+        if (shippingData.success && shippingData.data?.cost) {
+          shippingCost = shippingData.data.cost;
+        }
+      }
+    } catch (shippingError) {
+      console.error(
+        "Błąd obliczania kosztów wysyłki dla Schema:",
+        shippingError
+      );
+      // Używamy domyślnego kosztu
+    }
+    // ⬆️⬆️⬆️ KONIEC DODANIA ⬆️⬆️⬆️
+
     return (
       <>
-        {/* ⬇️⬇️⬇️ DODAJ SCHEMA ⬇️⬇️⬇️ */}
+        {/* ⬇️⬇️⬇️ ZMIEŃ - DODAJ shippingCost ⬇️⬇️⬇️ */}
         <ProductSchema
           product={{
             name: data.data.name,
@@ -133,9 +172,11 @@ export default async function ProductPage({
             url: `https://silniki-elektryczne.com.pl/${resolvedParams.categorySlug}/${resolvedParams.productSlug}`,
             categorySlug: resolvedParams.categorySlug,
             productSlug: resolvedParams.productSlug,
+            weight: data.data.weight || 0,
           }}
+          shippingCost={shippingCost}
         />
-        {/* ⬆️⬆️⬆️ KONIEC DODANIA ⬆️⬆️⬆️ */}
+        {/* ⬆️⬆️⬆️ KONIEC ZMIANY ⬆️⬆️⬆️ */}
 
         <div className="container mx-auto py-8 px-4 flex-grow">
           <div className="container mx-auto px-4 mb-6">
@@ -155,5 +196,7 @@ export default async function ProductPage({
         </div>
       </>
     );
-  } catch (error) {}
+  } catch (error) {
+    notFound();
+  }
 }

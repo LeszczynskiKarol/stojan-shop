@@ -13,10 +13,12 @@ interface ProductSchemaProps {
     url: string;
     categorySlug: string;
     productSlug: string;
+    weight: number; // ⬅️ DODANE
   };
+  shippingCost: number; // ⬅️ DODANE - RZECZYWISTY KOSZT
 }
 
-export function ProductSchema({ product }: ProductSchemaProps) {
+export function ProductSchema({ product, shippingCost }: ProductSchemaProps) {
   const conditionMap = {
     nowy: "NewCondition",
     uzywany: "UsedCondition",
@@ -52,6 +54,43 @@ export function ProductSchema({ product }: ProductSchemaProps) {
       seller: {
         "@type": "Organization",
         name: "Stojan - Silniki Elektryczne",
+      },
+      // ⬇️⬇️⬇️ UŻYWAMY RZECZYWISTEGO KOSZTU ⬇️⬇️⬇️
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: shippingCost.toString(),
+          currency: "PLN",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "PL",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 1,
+            maxValue: 2,
+            unitCode: "DAY",
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 1,
+            maxValue: product.weight > 100 ? 5 : 3,
+            unitCode: "DAY",
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "PL",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 14,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
       },
     },
   };

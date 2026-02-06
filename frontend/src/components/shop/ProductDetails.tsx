@@ -136,7 +136,7 @@ export const ProductDetails = ({
 
   const handleTooltipClick = (
     e: React.MouseEvent,
-    type: "condition" | "warranty"
+    type: "condition" | "warranty",
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -200,7 +200,7 @@ export const ProductDetails = ({
       className={cn(
         "flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer",
         "hover:bg-accent/50",
-        isSelected && "ring-2 ring-primary"
+        isSelected && "ring-2 ring-primary",
       )}
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -226,7 +226,7 @@ export const ProductDetails = ({
       <div
         className={cn(
           "h-5 w-5 rounded-full border-2",
-          isSelected && "border-primary bg-primary"
+          isSelected && "border-primary bg-primary",
         )}
       >
         {isSelected && <Check className="h-4 w-4 text-white" />}
@@ -239,7 +239,7 @@ export const ProductDetails = ({
     const handleClickOutside = (e: MouseEvent) => {
       if (tooltipPosition) {
         const tooltip = document.querySelector(
-          `[data-tooltip="${tooltipPosition.type}"]`
+          `[data-tooltip="${tooltipPosition.type}"]`,
         );
         const button = tooltipPosition.buttonRef;
 
@@ -319,7 +319,7 @@ export const ProductDetails = ({
     cod: number | null;
   }>({ prepaid: 0, cod: null });
   const [paymentMethod, setPaymentMethod] = useState<"prepaid" | "cod">(
-    "prepaid"
+    "prepaid",
   );
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -328,7 +328,7 @@ export const ProductDetails = ({
   const [showPrepaidInfo, setShowPrepaidInfo] = useState(false);
   const [showCodInfo, setShowCodInfo] = useState(false);
   const [clickPosition, setClickPosition] = useState<ClickPosition | null>(
-    null
+    null,
   );
   const [isMobile, setIsMobile] = useState(false);
   const [showDeliveryCalendar, setShowDeliveryCalendar] = useState(false);
@@ -529,7 +529,7 @@ export const ProductDetails = ({
       console.error("DEBUG: Błąd w calculateShippingCost:", error);
       setShippingCosts({ prepaid: 0, cod: 0 });
       setCalculationError(
-        error instanceof Error ? error.message : "Nieznany błąd"
+        error instanceof Error ? error.message : "Nieznany błąd",
       );
     } finally {
       setIsCalculating(false);
@@ -543,7 +543,7 @@ export const ProductDetails = ({
   const handleNextImage = () => {
     setActiveImageIndex(
       (prev) =>
-        (prev + 1) % (product.galleryImages?.length || product.images.length)
+        (prev + 1) % (product.galleryImages?.length || product.images.length),
     );
   };
 
@@ -551,7 +551,7 @@ export const ProductDetails = ({
     setActiveImageIndex((prev) =>
       prev === 0
         ? (product.galleryImages?.length || product.images.length) - 1
-        : prev - 1
+        : prev - 1,
     );
   };
 
@@ -590,7 +590,7 @@ export const ProductDetails = ({
             total: price * quantity + currentShippingCost,
             returnUrl: window.location.href,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -628,7 +628,7 @@ export const ProductDetails = ({
 
       // Sprawdzamy czy produkt już jest w koszyku
       const existingItem = cart.items.find(
-        (item) => item.productId === (product._id || product.id)
+        (item) => item.productId === (product._id || product.id),
       );
 
       if (existingItem) {
@@ -749,7 +749,7 @@ export const ProductDetails = ({
                 <div
                   className={cn(
                     "aspect-square relative overflow-hidden rounded-lg border cursor-pointer transition-all duration-200",
-                    activeImageIndex === 0 && "ring-2 ring-primary"
+                    activeImageIndex === 0 && "ring-2 ring-primary",
                   )}
                   onClick={() => setActiveImageIndex(0)}
                 >
@@ -769,7 +769,7 @@ export const ProductDetails = ({
                     key={index}
                     className={cn(
                       "aspect-square relative overflow-hidden rounded-lg border cursor-pointer transition-all duration-200",
-                      activeImageIndex === index + 1 && "ring-2 ring-primary"
+                      activeImageIndex === index + 1 && "ring-2 ring-primary",
                     )}
                     onClick={() => setActiveImageIndex(index + 1)}
                   >
@@ -780,7 +780,7 @@ export const ProductDetails = ({
                       className="object-cover"
                     />
                   </div>
-                )
+                ),
               )}
             </div>
           )}
@@ -903,14 +903,20 @@ export const ProductDetails = ({
 
           <div className="py-4 border-t border-b">
             <div className="flex items-center justify-between mb-0">
-              <div className="text-3xl font-bold">
-                {price.toLocaleString("pl-PL", {
-                  style: "currency",
-                  currency: "PLN",
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 2,
-                })}
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold">
+                  {price.toLocaleString("pl-PL", {
+                    style: "currency",
+                    currency: "PLN",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  brutto
+                </span>
               </div>
+
               <div>
                 {product.stock > 0 ? (
                   <div className="text-green-600">
@@ -988,7 +994,7 @@ export const ProductDetails = ({
                       className="flex items-center justify-center w-10 h-full text-muted-foreground hover:text-foreground bg-muted/20 hover:bg-muted/30 transition-colors"
                       onClick={() =>
                         setQuantity(
-                          Math.min(Math.min(1000, product.stock), quantity + 1)
+                          Math.min(Math.min(1000, product.stock), quantity + 1),
                         )
                       }
                       disabled={quantity >= Math.min(1000, product.stock)}
@@ -1158,7 +1164,7 @@ export const ProductDetails = ({
                 {product.manufacturer &&
                   product.manufacturer !== "" &&
                   !excludedManufacturers.includes(
-                    product.manufacturer.toLowerCase()
+                    product.manufacturer.toLowerCase(),
                   ) && (
                     <div className="space-y-2">
                       <p className="text-sm text-gray-500">Producent</p>
@@ -1293,7 +1299,7 @@ export const ProductDetails = ({
                       <ChevronDown
                         className={cn(
                           "w-4 h-4 transition-transform",
-                          isExpanded && "rotate-180"
+                          isExpanded && "rotate-180",
                         )}
                       />
                     </button>
@@ -1375,7 +1381,7 @@ export const ProductDetails = ({
                     <div
                       className={cn(
                         "w-16 h-16 relative overflow-hidden rounded-lg border cursor-pointer transition-all duration-200",
-                        activeImageIndex === 0 && "ring-2 ring-primary"
+                        activeImageIndex === 0 && "ring-2 ring-primary",
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1398,7 +1404,7 @@ export const ProductDetails = ({
                         className={cn(
                           "w-16 h-16 relative overflow-hidden rounded-lg border cursor-pointer transition-all duration-200",
                           activeImageIndex === index + 1 &&
-                            "ring-2 ring-primary"
+                            "ring-2 ring-primary",
                         )}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1412,7 +1418,7 @@ export const ProductDetails = ({
                           className="object-cover"
                         />
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               )}

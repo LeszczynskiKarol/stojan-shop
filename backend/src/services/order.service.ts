@@ -189,6 +189,20 @@ export class OrderService {
         totalWeight: Number(orderData.totalWeight),
       });
 
+      console.log('🔍 [CHECKPOINT 4] order.service - Zapisuję do bazy:', {
+        differentShippingAddress: order.shipping.differentShippingAddress,
+        mainAddress: {
+          street: order.shipping.street,
+          postalCode: order.shipping.postalCode,
+          city: order.shipping.city,
+        },
+        shippingAddress: {
+          street: order.shipping.shippingStreet,
+          postalCode: order.shipping.shippingPostalCode,
+          city: order.shipping.shippingCity,
+        },
+      });
+
       await this.repository.save(order);
 
       if (orderData.paymentMethod === 'cod') {

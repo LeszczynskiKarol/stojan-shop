@@ -299,6 +299,19 @@ export default function CheckoutPage() {
           }),
         }
       );
+      console.log("🔍 [CHECKPOINT 2] checkout/page - Wysyłam do API:", {
+        differentShippingAddress: data.differentShippingAddress,
+        mainAddress: {
+          street: data.street,
+          postalCode: data.postalCode,
+          city: data.city,
+        },
+        shippingAddress: {
+          street: data.shippingStreet,
+          postalCode: data.shippingPostalCode,
+          city: data.shippingCity,
+        },
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

@@ -156,7 +156,7 @@ export default function HomePageClient() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse animation-delay-2000" />
         </div>
 
-        <Card className="relative p-8 md:p-12 lg:p-16 bg-background/95 backdrop-blur-sm border-0 shadow-2xl">
+        <Card className="relative p-8 md:p-12 lg:p-16 bg-background/95 backdrop-blur-sm border-0 shadow-sm">
           <div className="max-w-4xl mx-auto">
             {/* Nagłówek */}
             <div className="text-center mb-10">

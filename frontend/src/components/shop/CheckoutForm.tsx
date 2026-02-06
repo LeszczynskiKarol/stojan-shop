@@ -130,6 +130,10 @@ export const CheckoutForm = ({
   const shippingPostalCode = watch("shippingPostalCode");
   const city = watch("city");
 
+  useEffect(() => {
+    setValue("differentShippingAddress", differentShippingAddress);
+  }, [differentShippingAddress, setValue]);
+
   // Automatyczne przełączanie między firmą a osobą
   useEffect(() => {
     if (companyName && companyName.trim().length > 0) {
@@ -354,6 +358,8 @@ export const CheckoutForm = ({
         firstName: data.firstName || (hasCompany ? data.companyName : ""),
         lastName: data.lastName || (hasCompany ? "-" : ""),
 
+        differentShippingAddress: data.differentShippingAddress,
+
         shippingStreet: data.differentShippingAddress
           ? data.shippingStreet
           : data.street,
@@ -368,6 +374,20 @@ export const CheckoutForm = ({
         invoicePostalCode: data.postalCode,
         invoiceCity: data.city,
       };
+
+      console.log("🔍 [CHECKPOINT 1] CheckoutForm - processedData:", {
+        differentShippingAddress: processedData.differentShippingAddress,
+        mainAddress: {
+          street: processedData.street,
+          postalCode: processedData.postalCode,
+          city: processedData.city,
+        },
+        shippingAddress: {
+          street: processedData.shippingStreet,
+          postalCode: processedData.shippingPostalCode,
+          city: processedData.shippingCity,
+        },
+      });
 
       await onSubmit(processedData);
     } catch (error) {

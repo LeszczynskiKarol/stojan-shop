@@ -1424,14 +1424,17 @@ export default function OrdersPage() {
                                     {order.shipping.lastName}
                                   </div>
                                   <div>
-                                    {order.shipping.shippingStreet ||
-                                      order.shipping.street}
+                                    {order.shipping.differentShippingAddress
+                                      ? order.shipping.shippingStreet
+                                      : order.shipping.street}
                                   </div>
                                   <div>
-                                    {order.shipping.shippingPostalCode ||
-                                      order.shipping.postalCode}{" "}
-                                    {order.shipping.shippingCity ||
-                                      order.shipping.city}
+                                    {order.shipping.differentShippingAddress
+                                      ? order.shipping.shippingPostalCode
+                                      : order.shipping.postalCode}{" "}
+                                    {order.shipping.differentShippingAddress
+                                      ? order.shipping.shippingCity
+                                      : order.shipping.city}
                                   </div>
                                   <div className="mt-4 pt-3 border-t">
                                     <div className="text-xs text-muted-foreground mb-1">

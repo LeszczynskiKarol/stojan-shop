@@ -90,6 +90,21 @@ export default function CheckoutSuccessPage() {
           const orderData = await orderResponse.json();
           console.log("Pobrane dane zamówienia:", orderData);
 
+          console.log("🔍 [CHECKPOINT 6] Success page - Order shipping:", {
+            differentShippingAddress:
+              orderData.data.shipping.differentShippingAddress,
+            mainAddress: {
+              street: orderData.data.shipping.street,
+              postalCode: orderData.data.shipping.postalCode,
+              city: orderData.data.shipping.city,
+            },
+            shippingAddress: {
+              street: orderData.data.shipping.shippingStreet,
+              postalCode: orderData.data.shipping.shippingPostalCode,
+              city: orderData.data.shipping.shippingCity,
+            },
+          });
+
           setOrderDetails(orderData.data);
           setOrderNumber(orderData.data.orderNumber);
         }
@@ -178,32 +193,74 @@ export default function CheckoutSuccessPage() {
               </div>
             </div>
 
-            {/* Prawa kolumna - dane do wysyłki */}
-            <div className="bg-accent rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Dane do wysyłki</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-1">Dane osobowe</h3>
-                  <p className="text-foreground">
-                    {orderDetails.shipping.firstName}{" "}
-                    {orderDetails.shipping.lastName}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Email: {orderDetails.shipping.email}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Tel: {orderDetails.shipping.phone}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-medium mb-1">Adres dostawy</h3>
-                  <p className="text-foreground">
-                    {orderDetails.shipping.street}
-                  </p>
-                  <p className="text-foreground">
-                    {orderDetails.shipping.postalCode}{" "}
-                    {orderDetails.shipping.city}
-                  </p>
+            {/* Prawa kolumna - dane zamawiającego i dostawa */}
+            <div className="space-y-6">
+              {/* Dane zamawiającego */}
+              <div className="bg-accent rounded-lg p-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium mb-1">Dane kontaktowe</h3>
+                    {orderDetails.shipping.companyName ? (
+                      <>
+                        <p className="text-foreground font-semibold">
+                          {orderDetails.shipping.companyName}
+                        </p>
+                        {orderDetails.shipping.nip && (
+                          <p className="text-muted-foreground text-sm">
+                            NIP: {orderDetails.shipping.nip}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-foreground">
+                        {orderDetails.shipping.firstName}{" "}
+                        {orderDetails.shipping.lastName}
+                      </p>
+                    )}
+                    <p className="text-muted-foreground text-sm">
+                      Email: {orderDetails.shipping.email}
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Tel: {orderDetails.shipping.phone}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">Adres</h3>
+                    <p className="text-foreground">
+                      {orderDetails.shipping.street}
+                    </p>
+                    <p className="text-foreground">
+                      {orderDetails.shipping.postalCode}{" "}
+                      {orderDetails.shipping.city}
+                    </p>
+                  </div>
+                  {/* Adres dostawy - tylko gdy jest inny */}
+                  {orderDetails.shipping.differentShippingAddress && (
+                    <div>
+                      <h2 className="text-xl font-semibold mb-4">
+                        Adres dostawy
+                      </h2>
+                      <div className="space-y-2">
+                        {orderDetails.shipping.companyName ? (
+                          <p className="text-foreground font-semibold">
+                            {orderDetails.shipping.companyName}
+                          </p>
+                        ) : (
+                          <p className="text-foreground">
+                            {orderDetails.shipping.firstName}{" "}
+                            {orderDetails.shipping.lastName}
+                          </p>
+                        )}
+                        <p className="text-foreground">
+                          {orderDetails.shipping.shippingStreet}
+                        </p>
+                        <p className="text-foreground">
+                          {orderDetails.shipping.shippingPostalCode}{" "}
+                          {orderDetails.shipping.shippingCity}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

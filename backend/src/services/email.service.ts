@@ -40,6 +40,20 @@ export class EmailService {
       recipientEmail: order.shipping.email,
     });
 
+    console.log('🔍 [CHECKPOINT 5] email.service - Order shipping data:', {
+      differentShippingAddress: order.shipping.differentShippingAddress,
+      mainAddress: {
+        street: order.shipping.street,
+        postalCode: order.shipping.postalCode,
+        city: order.shipping.city,
+      },
+      shippingAddress: {
+        street: order.shipping.shippingStreet,
+        postalCode: order.shipping.shippingPostalCode,
+        city: order.shipping.shippingCity,
+      },
+    });
+
     const totalWeight = Number(order.totalWeight);
 
     const dates = calculateDeliveryDates(totalWeight);
@@ -167,7 +181,7 @@ export class EmailService {
     const mailOptions: any = {
       from: env.SMTP_FROM,
       to: order.shipping.email,
-      subject: `Stojan Silniki Elektryczne - Twoje zamówienie juz do Ciebie jedzie!`,
+      subject: `Stojan Silniki Elektryczne - Twoje zamówienie już do Ciebie jedzie!`,
       html,
     };
 

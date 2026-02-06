@@ -59,6 +59,20 @@ export class OrderController {
     try {
       const { items, shipping, paymentMethod } = req.body;
 
+      console.log('🔍 [CHECKPOINT 3] Backend otrzymał shipping:', {
+        differentShippingAddress: shipping.differentShippingAddress,
+        mainAddress: {
+          street: shipping.street,
+          postalCode: shipping.postalCode,
+          city: shipping.city,
+        },
+        shippingAddress: {
+          street: shipping.shippingStreet,
+          postalCode: shipping.shippingPostalCode,
+          city: shipping.shippingCity,
+        },
+      });
+
       const shippingCost = await this.orderService.calculateShippingCost(
         items,
         paymentMethod

@@ -1,155 +1,214 @@
+<!-- backend/src/templates/emails/order-confirmation.hbs !-->
 <html>
   <head>
     <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <style>
       @import
       url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
       body { font-family: "Inter", sans-serif; line-height: 1.6; color: #1f2937;
-      margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto;
-      padding: 20px; } .logo { font-family: "Avenir Black", "Inter", sans-serif;
-      font-size: 30px; font-weight: 900; color: #111827; text-align: center; }
-      .logo1 { font-family: "Avenir Black", "Inter", sans-serif; font-size:
-      20px; font-weight: 900; color: #111827; text-align: center; } .header {
-      text-align: center; margin-bottom: 40px; } .order-info { background-color:
-      #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
-      .order-items { width: 100%; border-collapse: collapse; margin-bottom:
-      20px; } .order-items th, .order-items td { padding: 12px; text-align:
-      left; border-bottom: 1px solid #e5e7eb; } .total { text-align: right;
-      font-weight: 600; } .shipping-info { margin-top: 30px; } .button {
-      display: inline-block; padding: 12px 24px; background-color: #f3bc00;
-      color: white; text-decoration: none; border-radius: 6px; font-weight: 500;
-      margin-top: 20px; }
+      margin: 0; padding: 0; background-color: #f9fafb; } .email-wrapper {
+      background-color: #f9fafb; padding: 40px 20px; } .container { max-width:
+      600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px;
+      overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+      .email-header { background: linear-gradient(135deg, #f3bc00 0%, #f5c61f
+      100%); padding: 40px 30px; text-align: center; } .logo { font-family:
+      "Inter", sans-serif; font-size: 36px; font-weight: 900; color: #ffffff;
+      margin: 0; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); } .logo-subtitle {
+      font-family: "Inter", sans-serif; font-size: 16px; font-weight: 600;
+      color: #ffffff; margin: 5px 0 0 0; opacity: 0.95; } .success-badge {
+      background-color: #ffffff; color: #f3bc00; padding: 8px 20px;
+      border-radius: 20px; display: inline-block; font-weight: 600; margin-top:
+      20px; font-size: 14px; } .content { padding: 40px 30px; } .greeting {
+      font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 12px 0;
+      text-align: center; } .intro-text { text-align: center; color: #6b7280;
+      font-size: 15px; margin: 0 0 30px 0; } .order-number { background-color:
+      #fef3c7; border-left: 4px solid #f3bc00; padding: 16px 20px;
+      border-radius: 8px; margin-bottom: 30px; } .order-number-label {
+      font-size: 13px; color: #92400e; margin: 0 0 4px 0; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; } .order-number-value {
+      font-size: 20px; color: #92400e; margin: 0; font-weight: 700; } .section {
+      margin-bottom: 30px; } .section-title { font-size: 16px; font-weight: 700;
+      color: #111827; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom:
+      2px solid #f3bc00; } .products-box { background-color: #f9fafb;
+      border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb; } /* Product
+      item with image */ .product-item { display: table; width: 100%;
+      margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid
+      #e5e7eb; } .product-item:last-child { margin-bottom: 0; padding-bottom: 0;
+      border-bottom: none; } .product-image-cell { display: table-cell; width:
+      80px; vertical-align: top; padding-right: 16px; } .product-image { width:
+      80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px
+      solid #e5e7eb; background-color: #ffffff; } .product-details-cell {
+      display: table-cell; vertical-align: top; } .product-name { font-weight:
+      600; color: #111827; font-size: 15px; margin: 0 0 8px 0; line-height: 1.4;
+      } .product-meta { font-size: 14px; color: #6b7280; margin: 4px 0; }
+      .product-price { font-weight: 600; color: #111827; font-size: 16px;
+      margin-top: 8px; } .summary { margin-top: 24px; padding-top: 20px;
+      border-top: 2px solid #e5e7eb; } .summary-row { display: table; width:
+      100%; padding: 8px 0; font-size: 15px; } .summary-label { display:
+      table-cell; color: #6b7280; } .summary-value { display: table-cell;
+      text-align: right; font-weight: 600; color: #111827; } .summary-total {
+      background-color: #fef3c7; padding: 16px 20px; border-radius: 8px;
+      margin-top: 12px; } .summary-total .summary-row { padding: 0; }
+      .summary-total .summary-label { font-size: 16px; font-weight: 600; color:
+      #92400e; } .summary-total .summary-value { font-size: 20px; font-weight:
+      700; color: #92400e; } .info-box { background-color: #f9fafb;
+      border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid
+      #e5e7eb; } .info-box h3 { font-size: 14px; font-weight: 700; color:
+      #111827; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing:
+      0.5px; } .info-box p { margin: 6px 0; font-size: 14px; color: #4b5563;
+      line-height: 1.6; } .info-box strong { color: #111827; font-weight: 600; }
+      .info-label { color: #6b7280; font-size: 13px; margin-bottom: 4px; }
+      .delivery-box { background: linear-gradient(135deg, #fef3c7 0%, #fef9e7
+      100%); border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px
+      solid #f3bc00; } .delivery-box h3 { font-size: 14px; font-weight: 700;
+      color: #92400e; margin: 0 0 12px 0; text-transform: uppercase;
+      letter-spacing: 0.5px; } .delivery-box p { margin: 6px 0; font-size: 14px;
+      color: #78350f; line-height: 1.6; } .delivery-box strong { color: #92400e;
+      font-weight: 600; } .footer { background-color: #f9fafb; padding: 30px;
+      text-align: center; border-top: 1px solid #e5e7eb; } .footer p { margin:
+      8px 0; font-size: 14px; color: #6b7280; line-height: 1.6; } .contact-info
+      { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+      .contact-info strong { color: #111827; font-weight: 600; } @media only
+      screen and (max-width: 600px) { .email-wrapper { padding: 20px 10px; }
+      .content { padding: 30px 20px; } .email-header { padding: 30px 20px; }
+      .logo { font-size: 28px; } .greeting { font-size: 20px; }
+      .product-image-cell { width: 60px; padding-right: 12px; } .product-image {
+      width: 60px; height: 60px; } }
     </style>
   </head>
   <body>
-    <div class='container'>
-      <div class='logo'>STOJAN</div>
-      <div class='logo1'>silniki elektryczne</div>
-      <div class='header'>
-        <h1>Dziękujemy za zamówienie!</h1>
-        <p>Twoje zamówienie {{order.orderNumber}} zostało potwierdzone.</p>
-      </div>
-      <div class='order-info'>
-        <table class='order-items'>
-          <thead>
-            <tr> <th>Produkt</th> <th>Ilość</th> <th>Cena</th> </tr>
-          </thead>
-          <tbody>
-            {{#each order.items}}
-              <tr>
-                <td>{{this.name}}</td>
-                <td>{{this.quantity}} szt.</td>
-                <td>{{format_price this.price}} zł</td>
-              </tr>
-            {{/each}}
-          </tbody>
-        </table>
-        <div class='total'>
-          <p>Produkty: {{format_price order.subtotal}} zł</p>
-          <p>Dostawa: {{format_price order.shippingCost}} zł</p>
-          <p>Razem: <strong>{{format_price order.total}} zł</strong></p>
+    <div class='email-wrapper'>
+      <div class='container'>
+        <div class='email-header'>
+          <h1 class='logo'>STOJAN</h1>
+          <p class='logo-subtitle'>silniki elektryczne</p>
+          <div class='success-badge'>✓ Zamówienie potwierdzone</div>
         </div>
-      </div>
-      <div class='shipping-info'>
-        <h2>Adres dostawy</h2>
-        <p>
-          {{order.shipping.firstName}}
-          {{order.shipping.lastName}}<br />
-          {{order.shipping.street}}<br />
-          {{order.shipping.postalCode}}
-          {{order.shipping.city}}
-        </p>
-        <h2>Metoda płatności</h2>
-        <p>{{#if (eq order.paymentMethod 'cod')}}Płatność za pobraniem{{else}}Płatność
-            online{{/if}}</p>
-      </div>
-      <tr>
-        <td style='padding: 20px;'>
-          <p style='margin-bottom: 10px;'><strong>Szczegóły dostawy:</strong></p>
-          <p>Data wysyłki: {{shippingDateFormatted}}</p>
-          <p>Przewidywana dostawa: {{deliveryInfo}}</p>
-        </td>
-      </tr>
-      <p>Kolejną wiadomość prześlemy po przekazaniu zamówienia do wysyłki.</p>
-      <p>Jeśli masz pytania, odpowiedz na tę wiadomość lub zadzwoń pod numer 500
-        385 112.</p>
-    </div>
-  </body>
-</html>
-<html>
-  <head>
-    <meta charset='utf-8' />
-    <style>
-      @import
-      url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-      body { font-family: "Inter", sans-serif; line-height: 1.6; color: #1f2937;
-      margin: 0; padding: 0; } .container { max-width: 600px; margin: 0 auto;
-      padding: 20px; } .logo { font-family: "Avenir Black", "Inter", sans-serif;
-      font-size: 30px; font-weight: 900; color: #111827; text-align: center; }
-      .logo1 { font-family: "Avenir Black", "Inter", sans-serif; font-size:
-      20px; font-weight: 900; color: #111827; text-align: center; } .header {
-      text-align: center; margin-bottom: 40px; } .order-info { background-color:
-      #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
-      .order-items { width: 100%; border-collapse: collapse; margin-bottom:
-      20px; } .order-items th, .order-items td { padding: 12px; text-align:
-      left; border-bottom: 1px solid #e5e7eb; } .total { text-align: right;
-      font-weight: 600; } .shipping-info { margin-top: 30px; } .button {
-      display: inline-block; padding: 12px 24px; background-color: #f3bc00;
-      color: white; text-decoration: none; border-radius: 6px; font-weight: 500;
-      margin-top: 20px; }
-    </style>
-  </head>
-  <body>
-    <div class='container'>
-      <div class='logo'>STOJAN</div>
-      <div class='logo1'>silniki elektryczne</div>
-      <div class='header'>
-        <h1>Właśnie przekazaliśmy Twoje zamówienie do wysyłki!</h1>
-        <p>Zamówienie
-          {{order.orderNumber}}
-          zostało
-          {{#if (eq order.status 'shipped')}}
-            przekazane do wysyłki.
-            {{#if (lte order.totalWeight 36.5)}}
-              Przesyłka zostanie dostarczona
-              {{formatDate dates.deliveryDateStart 'd MMMM'}}.
-            {{else}}
-              Przesyłka zostanie dostarczona między
-              {{formatDate dates.deliveryDateStart 'd MMMM'}}
-              a
-              {{formatDate dates.deliveryDateEnd 'd MMMM'}}.
-            {{/if}}
-          {{else if (eq order.status 'delivered')}} dostarczone {{else}}
-            {{order.status}}
+
+        <div class='content'>
+          <h2 class='greeting'>Dziękujemy za zamówienie!</h2>
+          <p class='intro-text'>
+            Twoje zamówienie zostało przyjęte i jest przetwarzane.
+          </p>
+
+          <div class='order-number'>
+            <p class='order-number-label'>Numer zamówienia</p>
+            <p class='order-number-value'>{{order.orderNumber}}</p>
+          </div>
+
+          <div class='section'>
+            <h3 class='section-title'>📦 Zamówione produkty</h3>
+            <div class='products-box'>
+              {{#each order.items}}
+                <div class='product-item'>
+                  {{#if this.image}}
+                    <div class='product-image-cell'>
+                      <img
+                        src='{{this.image}}'
+                        alt='{{this.name}}'
+                        class='product-image'
+                      />
+                    </div>
+                  {{/if}}
+                  <div class='product-details-cell'>
+                    <p class='product-name'>{{this.name}}</p>
+                    <p class='product-meta'>Ilość: {{this.quantity}} szt.</p>
+                    <p class='product-price'>{{format_price this.price}} zł</p>
+                  </div>
+                </div>
+              {{/each}}
+
+              <div class='summary'>
+                <div class='summary-row'>
+                  <span class='summary-label'>Wartość produktów</span>
+                  <span class='summary-value'>{{format_price order.subtotal}}
+                    zł</span>
+                </div>
+                <div class='summary-row'>
+                  <span class='summary-label'>Koszt dostawy</span>
+                  <span class='summary-value'>{{format_price
+                      order.shippingCost
+                    }}
+                    zł</span>
+                </div>
+                <div class='summary-total'>
+                  <div class='summary-row'>
+                    <span class='summary-label'>RAZEM</span>
+                    <span class='summary-value'>{{format_price order.total}}
+                      zł</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class='section'>
+            <h3 class='section-title'>👤 Twoje dane</h3>
+            <div class='info-box'>
+              {{#if order.shipping.companyName}}
+                <p><strong>{{order.shipping.companyName}}</strong></p>
+                {{#if order.shipping.nip}}
+                  <p class='info-label'>NIP: {{order.shipping.nip}}</p>
+                {{/if}}
+              {{else}}
+                <p><strong>{{order.shipping.firstName}}
+                    {{order.shipping.lastName}}</strong></p>
+              {{/if}}
+              <p>{{order.shipping.street}}</p>
+              <p>{{order.shipping.postalCode}} {{order.shipping.city}}</p>
+              <p class='info-label' style='margin-top: 12px;'>Email:
+                <strong>{{order.shipping.email}}</strong></p>
+              <p class='info-label'>Telefon:
+                <strong>{{order.shipping.phone}}</strong></p>
+            </div>
+          </div>
+
+          {{#if order.shipping.differentShippingAddress}}
+            <div class='section'>
+              <h3 class='section-title'>🚚 Adres dostawy</h3>
+              <div class='info-box'>
+                {{#if order.shipping.companyName}}
+                  <p><strong>{{order.shipping.companyName}}</strong></p>
+                {{else}}
+                  <p><strong>{{order.shipping.firstName}}
+                      {{order.shipping.lastName}}</strong></p>
+                {{/if}}
+                <p>{{order.shipping.shippingStreet}}</p>
+                <p>{{order.shipping.shippingPostalCode}}
+                  {{order.shipping.shippingCity}}</p>
+              </div>
+            </div>
           {{/if}}
-        </p>
-      </div>
-      <div class='order-info'>
-        <table class='order-items'>
-          <thead>
-            <tr> <th>Produkt</th> <th>Ilość</th> <th>Cena</th> </tr>
-          </thead>
-          <tbody>
-            {{#each order.items}}
-              <tr>
-                <td>{{this.name}}</td>
-                <td>{{this.quantity}} szt.</td>
-                <td>{{format_price this.price}}</td>
-              </tr>
-            {{/each}}
-            <tr>
-              <td colspan='2' style='text-align: right;'>Koszt dostawy:</td>
-              <td>{{format_price order.shippingCost}}</td>
-            </tr>
-            <tr>
-              <td colspan='2' style='text-align: right;'><strong>Razem do
-                  zapłaty:</strong></td>
-              <td><strong>{{format_price order.total}}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-        <p>Dziękujemy za zaufanie i polecamy się na przyszłość przy kupnie
-          napędu elektrycznego.</p>
+
+          <div class='section'>
+            <h3 class='section-title'>💳 Metoda płatności</h3>
+            <div class='info-box'>
+              <p><strong>{{#if (eq order.paymentMethod 'cod')}}Płatność za
+                    pobraniem{{else}}Płatność online{{/if}}</strong></p>
+              {{#if (eq order.paymentMethod 'cod')}}
+                <p class='info-label'>Kwota do zapłaty przy odbiorze:
+                  <strong>{{format_price order.total}} zł</strong></p>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class='delivery-box'>
+            <h3>📅 Szczegóły dostawy</h3>
+            <p><strong>Data wysyłki:</strong> {{shippingDateFormatted}}</p>
+            <p><strong>Przewidywana dostawa:</strong> {{deliveryInfo}}</p>
+          </div>
+        </div>
+
+        <div class='footer'>
+          <p>Kolejną wiadomość prześlemy po przekazaniu zamówienia do wysyłki.</p>
+
+          <div class='contact-info'>
+            <p><strong>Masz pytania?</strong></p>
+            <p>Odpowiedz na tę wiadomość lub zadzwoń:
+              <strong>500 385 112</strong></p>
+          </div>
+        </div>
       </div>
     </div>
   </body>

@@ -92,7 +92,7 @@ const OwnStorePage = () => {
     value: "",
   });
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
   const [selectedRows, setSelectedRows] = useState<string[]>(() => {
     const saved = localStorage.getItem("selectedTableRows");
@@ -164,7 +164,7 @@ const OwnStorePage = () => {
       const responseText = await response.text();
       console.log(
         "[FRONTEND] Surowa odpowiedź (pierwsze 500 znaków):",
-        responseText.substring(0, 500)
+        responseText.substring(0, 500),
       );
 
       let data;
@@ -220,7 +220,7 @@ const OwnStorePage = () => {
 
   const linkProductToAllegro = async (
     allegroOfferId: string,
-    force = false
+    force = false,
   ) => {
     if (!linkingModal.productId) return;
 
@@ -231,7 +231,7 @@ const OwnStorePage = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ allegroOfferId, force }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -258,7 +258,7 @@ const OwnStorePage = () => {
         // Jeśli konflikt i mamy ID konfliktu, pokaż opcję wymuszenia
         if (data.conflictingProductId) {
           const forceLink = window.confirm(
-            `${data.error}\n\nCzy chcesz wymusić powiązanie? To zaktualizuje oba produkty.`
+            `${data.error}\n\nCzy chcesz wymusić powiązanie? To zaktualizuje oba produkty.`,
           );
 
           if (forceLink) {
@@ -278,6 +278,66 @@ const OwnStorePage = () => {
       toast({
         title: "Błąd",
         description: "Nie udało się powiązać produktu z Allegro",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const unlinkProductFromAllegro = async (
+    productId: string,
+    productName: string,
+  ) => {
+    if (
+      !window.confirm(
+        `Czy na pewno chcesz usunąć powiązanie z Allegro dla produktu "${productName}"?\n\nTo nie usunie oferty z Allegro - tylko odłączy ją od tego produktu w sklepie.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/allegro/unlink-product/${productId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Sukces",
+          description: `Usunięto powiązanie z Allegro dla "${productName}"`,
+        });
+
+        // Wyczyść lokalny cache URL-i
+        if (productId) {
+          setAllegroUrls((prev) => {
+            const newUrls = { ...prev };
+            delete newUrls[productId];
+            return newUrls;
+          });
+        }
+
+        // Odśwież listę produktów
+        fetchProductsForAdmin({
+          page: currentPage,
+          limit: itemsPerPage,
+          sortField: sortConfig.key,
+          sortDirection: sortConfig.direction,
+          search: searchTerm,
+        });
+      } else {
+        toast({
+          title: "Błąd",
+          description: data.error || "Nie udało się usunąć powiązania",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Błąd usuwania powiązania:", error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się usunąć powiązania z Allegro",
         variant: "destructive",
       });
     }
@@ -314,7 +374,7 @@ const OwnStorePage = () => {
     const fetchAllegroUrls = async () => {
       const productIds = products
         .filter(
-          (p) => p.id && (!allegroUrls[p.id] || !p.marketplaces?.allegro?.url)
+          (p) => p.id && (!allegroUrls[p.id] || !p.marketplaces?.allegro?.url),
         )
         .map((p) => p.id);
 
@@ -339,7 +399,7 @@ const OwnStorePage = () => {
           } else {
             // Jeśli nie, pobierz z API
             const response = await fetch(
-              `/api/allegroProducts/product-allegro-link/${productId}`
+              `/api/allegroProducts/product-allegro-link/${productId}`,
             );
             if (response.ok) {
               const data = await response.json();
@@ -377,14 +437,14 @@ const OwnStorePage = () => {
                 }
                 return acc;
               },
-              {}
+              {},
             );
 
             setAllegroProductsMap(productMap);
             console.log(
               "Pobrano",
               Object.keys(productMap).length,
-              "produktów z Allegro"
+              "produktów z Allegro",
             );
           }
         }
@@ -419,12 +479,12 @@ const OwnStorePage = () => {
           !p.marketplaces?.allegro?.productId &&
           typeof p.marketplaces?.allegro?.url === "string" &&
           p.marketplaces?.allegro?.url.includes("/oferta/") &&
-          !p.marketplaces?.allegro?.url.includes("/oferta/undefined")
+          !p.marketplaces?.allegro?.url.includes("/oferta/undefined"),
       );
 
       if (productsToFix.length > 0) {
         console.log(
-          `Znaleziono ${productsToFix.length} produktów z brakującym productId`
+          `Znaleziono ${productsToFix.length} produktów z brakującym productId`,
         );
 
         // Napraw lokalne kopie produktów
@@ -442,7 +502,7 @@ const OwnStorePage = () => {
 
               if (idPart && idPart !== "undefined") {
                 console.log(
-                  `Naprawiam produkt ${product.name}: dodaję productId ${idPart} na podstawie URL ${url}`
+                  `Naprawiam produkt ${product.name}: dodaję productId ${idPart} na podstawie URL ${url}`,
                 );
 
                 // Aktualizuj w bazie danych
@@ -459,18 +519,18 @@ const OwnStorePage = () => {
                 })
                   .then(() => {
                     console.log(
-                      `✅ Zapisano productId ${idPart} dla produktu ${product.name}`
+                      `✅ Zapisano productId ${idPart} dla produktu ${product.name}`,
                     );
                   })
                   .catch((error) => {
                     console.error(
                       `❌ Błąd zapisywania productId dla ${product.name}:`,
-                      error
+                      error,
                     );
                   });
               } else {
                 console.log(
-                  `Błędny URL dla produktu ${product.name}: ${url} - nie można wyciągnąć ID`
+                  `Błędny URL dla produktu ${product.name}: ${url} - nie można wyciągnąć ID`,
                 );
               }
             }
@@ -482,7 +542,7 @@ const OwnStorePage = () => {
 
   const shouldShowCategory = (categoryName: string): boolean => {
     return includedCategoryWords.some((word) =>
-      categoryName.toLowerCase().includes(word.toLowerCase())
+      categoryName.toLowerCase().includes(word.toLowerCase()),
     );
   };
 
@@ -528,7 +588,7 @@ const OwnStorePage = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/api/allegro/sync-sleeve-diameters`,
         {
           method: "POST",
-        }
+        },
       );
 
       if (response.ok) {
@@ -561,7 +621,7 @@ const OwnStorePage = () => {
   const handleCellEdit = async (
     productId: string,
     field: string,
-    value: any
+    value: any,
   ) => {
     const scrollPosition = window.scrollY;
 
@@ -700,11 +760,11 @@ const OwnStorePage = () => {
             console.log("Nowy stan:", newStock);
             console.log(
               "Allegro productId:",
-              product.marketplaces?.allegro?.productId
+              product.marketplaces?.allegro?.productId,
             );
             console.log(
               "matched_store_product:",
-              product.matched_store_product
+              product.matched_store_product,
             );
 
             // Przekaż flagę hasAllegroLink=true jeśli mamy bezpośrednie ID lub powiązanie
@@ -719,7 +779,7 @@ const OwnStorePage = () => {
 
             if (!hasAllegroLink) {
               console.warn(
-                "⚠️ Produkt nie ma powiązania z Allegro, synchronizacja nie będzie wykonana!"
+                "⚠️ Produkt nie ma powiązania z Allegro, synchronizacja nie będzie wykonana!",
               );
             }
 
@@ -854,12 +914,12 @@ const OwnStorePage = () => {
             onClick={(e) => {
               e.preventDefault();
               const parentDiv = document.activeElement?.closest(
-                ".flex.items-center.gap-2"
+                ".flex.items-center.gap-2",
               );
               if (!parentDiv) return;
 
               const input = parentDiv.querySelector(
-                "input, select, textarea"
+                "input, select, textarea",
               ) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
               if (!input?.value) return;
@@ -941,7 +1001,7 @@ const OwnStorePage = () => {
                   key={category.id}
                   value={category.id}
                   selected={product.categories?.some(
-                    (cat) => cat.id === category.id
+                    (cat) => cat.id === category.id,
                   )}
                 >
                   {category.name}
@@ -1045,28 +1105,56 @@ const OwnStorePage = () => {
             </a>
 
             {allegroUrl ? (
-              <a
-                href={allegroUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-orange-400 hover:text-orange-500 flex items-center gap-1"
-              >
-                <span>Link do Allegro</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <div className="flex items-center gap-2">
+                <a
+                  href={allegroUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-orange-400 hover:text-orange-500 flex items-center gap-1"
                 >
-                  <line x1="7" y1="17" x2="17" y2="7" />
-                  <polyline points="7 7 17 7 17 17" />
-                </svg>
-              </a>
+                  <span>Link do Allegro</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="7" y1="17" x2="17" y2="7" />
+                    <polyline points="7 7 17 7 17 17" />
+                  </svg>
+                </a>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (product.id) {
+                      unlinkProductFromAllegro(product.id, product.name);
+                    }
+                  }}
+                  className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 ml-1"
+                  title="Usuń powiązanie z Allegro"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  <span>Odłącz</span>
+                </button>
+              </div>
             ) : isLoadingAllegroUrl ? (
               <span className="text-xs text-gray-500">Ładowanie linku...</span>
             ) : (
@@ -1086,19 +1174,15 @@ const OwnStorePage = () => {
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
                 <span>Brak Allegro</span>
-                {(!product.matched_store_product ||
-                  (product.matched_store_product &&
-                    !product.marketplaces?.allegro?.productId)) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openLinkingModal(product);
-                    }}
-                    className="text-xs text-blue-500 hover:text-blue-600 underline mt-1"
-                  >
-                    Powiąż z Allegro
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLinkingModal(product);
+                  }}
+                  className="text-xs text-blue-500 hover:text-blue-600 underline mt-1"
+                >
+                  Powiąż z Allegro
+                </button>
               </span>
             )}
 
@@ -1106,7 +1190,7 @@ const OwnStorePage = () => {
               {product.matched_store_product
                 ? `✓ Allegro Marketplace ID: ${product.matched_store_product.store_product_id.substring(
                     0,
-                    8
+                    8,
                   )}...`
                 : "❌ Brak powiązania z Allegro"}
             </div>
@@ -1135,28 +1219,28 @@ const OwnStorePage = () => {
 
     if (field === "categories") {
       const filteredCategories = categories?.filter((category) =>
-        shouldShowCategory(category.name)
+        shouldShowCategory(category.name),
       );
 
       // Spróbuj pobrać kategorię na podstawie category_path
       const categoryPath =
         product.marketplaces?.ownStore?.category_path?.replace("/", "") || "";
       const matchingCategory = categories?.find(
-        (cat) => cat.slug === categoryPath
+        (cat) => cat.slug === categoryPath,
       );
 
       // Jeśli nie ma kategorii w categories, ale jest w category_path, dodaj ją
       const effectiveCategories = product.categories?.length
         ? product.categories
         : matchingCategory
-        ? [
-            {
-              id: matchingCategory.id,
-              name: matchingCategory.name,
-              slug: matchingCategory.slug,
-            },
-          ]
-        : [];
+          ? [
+              {
+                id: matchingCategory.id,
+                name: matchingCategory.name,
+                slug: matchingCategory.slug,
+              },
+            ]
+          : [];
 
       const selectedCategoryId = effectiveCategories[0]?.id || "";
 
@@ -1230,7 +1314,7 @@ const OwnStorePage = () => {
                         // Zmiana tutaj
                         method: "POST",
                         body: formData,
-                      }
+                      },
                     );
 
                     if (response.ok) {
@@ -1265,7 +1349,7 @@ const OwnStorePage = () => {
                   e.stopPropagation();
                   if (window.confirm("Czy chcesz usunąć to zdjęcie?")) {
                     const newGallery = product.galleryImages?.filter(
-                      (_, i) => i !== idx
+                      (_, i) => i !== idx,
                     );
                     await updateProduct(product.id!, {
                       ...product,
@@ -1301,7 +1385,7 @@ const OwnStorePage = () => {
                       // Zmiana tutaj
                       method: "POST",
                       body: formData,
-                    }
+                    },
                   );
 
                   if (response.ok) {
@@ -1388,7 +1472,7 @@ const OwnStorePage = () => {
                           await handleCellEdit(
                             product.id!,
                             "dataSheets",
-                            newDataSheets
+                            newDataSheets,
                           );
                           fetchProductsForAdmin({
                             page: currentPage,
@@ -1432,7 +1516,7 @@ const OwnStorePage = () => {
                       {
                         method: "POST",
                         body: formData,
-                      }
+                      },
                     );
 
                     if (response.ok) {
@@ -1481,7 +1565,7 @@ const OwnStorePage = () => {
                       isOpen: true,
                       productId,
                       content: unformatHtmlToText(
-                        product.technicalDetails || ""
+                        product.technicalDetails || "",
                       ),
                     });
                   }}
@@ -1548,7 +1632,7 @@ const OwnStorePage = () => {
 
                 if (
                   !confirm(
-                    "Czy na pewno chcesz wygenerować nowy opis? Obecny opis zostanie zastąpiony."
+                    "Czy na pewno chcesz wygenerować nowy opis? Obecny opis zostanie zastąpiony.",
                   )
                 ) {
                   return;
@@ -1559,7 +1643,7 @@ const OwnStorePage = () => {
                   await handleCellEdit(
                     product.id!,
                     "description",
-                    formatContentToHtml(description)
+                    formatContentToHtml(description),
                   );
                   toast({
                     title: "Sukces",
@@ -1665,7 +1749,7 @@ const OwnStorePage = () => {
                       handleCellEdit(
                         product.id!,
                         "customParameters",
-                        newParams
+                        newParams,
                       );
                     }}
                     placeholder="Nazwa parametru"
@@ -1679,7 +1763,7 @@ const OwnStorePage = () => {
                       handleCellEdit(
                         product.id!,
                         "customParameters",
-                        newParams
+                        newParams,
                       );
                     }}
                     placeholder="Wartość"
@@ -1740,7 +1824,7 @@ const OwnStorePage = () => {
                   .updateProductStock(
                     productId,
                     parseInt(e.target.value),
-                    hasAllegroLink
+                    hasAllegroLink,
                   );
               }}
               className="flex-1 px-2 py-1 border rounded"
@@ -1892,7 +1976,7 @@ const OwnStorePage = () => {
         const categoryPath =
           product.marketplaces?.ownStore?.category_path?.replace("/", "") || "";
         const matchingCategory = categories.find(
-          (cat) => cat.slug === categoryPath
+          (cat) => cat.slug === categoryPath,
         );
 
         if (product.categories?.[0]?.name) {
@@ -1986,7 +2070,7 @@ const OwnStorePage = () => {
 
     if (
       window.confirm(
-        `Czy na pewno chcesz usunąć ${selectedProducts.length} wybranych produktów?`
+        `Czy na pewno chcesz usunąć ${selectedProducts.length} wybranych produktów?`,
       )
     ) {
       try {
@@ -2388,8 +2472,8 @@ const OwnStorePage = () => {
                         key === "name"
                           ? "sticky left-0 z-20 bg-background border-r"
                           : key === "images"
-                          ? "sticky left-[300px] z-20 bg-background border-r"
-                          : ""
+                            ? "sticky left-[300px] z-20 bg-background border-r"
+                            : ""
                       } cursor-pointer select-none`}
                       onClick={() =>
                         key !== "actions" &&
@@ -2404,7 +2488,7 @@ const OwnStorePage = () => {
                           checked={
                             products.length > 0 &&
                             products.every((p) =>
-                              selectedProducts.includes(p.id || "")
+                              selectedProducts.includes(p.id || ""),
                             )
                           }
                           onChange={(e) => {
@@ -2424,12 +2508,12 @@ const OwnStorePage = () => {
                             } else {
                               // Usuń ID aktualnie widocznych produktów z zaznaczonych
                               const visibleProductIds = products.map(
-                                (p) => p.id || ""
+                                (p) => p.id || "",
                               );
                               setSelectedProducts(
                                 selectedProducts.filter(
-                                  (id) => !visibleProductIds.includes(id)
-                                )
+                                  (id) => !visibleProductIds.includes(id),
+                                ),
                               );
                             }
                           }}
@@ -2467,8 +2551,8 @@ const OwnStorePage = () => {
                       !product.marketplaces?.allegro?.productId
                         ? "bg-red-50 dark:bg-red-900/20"
                         : selectedProducts.includes(product.id || "")
-                        ? "bg-border"
-                        : ""
+                          ? "bg-border"
+                          : ""
                     }`}
                   >
                     <td className="w-10 px-2 sticky left-0 bg-background border-r z-10">
@@ -2486,7 +2570,7 @@ const OwnStorePage = () => {
                             ]);
                           } else {
                             setSelectedProducts(
-                              selectedProducts.filter((id) => id !== productId)
+                              selectedProducts.filter((id) => id !== productId),
                             );
                           }
                         }}
@@ -2610,7 +2694,7 @@ const OwnStorePage = () => {
                             ]);
                           } else {
                             setSelectedProducts(
-                              selectedProducts.filter((id) => id !== productId)
+                              selectedProducts.filter((id) => id !== productId),
                             );
                           }
                         }}
@@ -2757,7 +2841,7 @@ const OwnStorePage = () => {
                   await handleCellEdit(
                     descriptionModal.productId,
                     "description",
-                    formatContentToHtml(descriptionModal.content)
+                    formatContentToHtml(descriptionModal.content),
                   );
                   setDescriptionModal({
                     isOpen: false,
@@ -2836,7 +2920,7 @@ const OwnStorePage = () => {
                   await handleCellEdit(
                     technicalDetailsModal.productId,
                     "technicalDetails",
-                    formatContentToHtml(technicalDetailsModal.content)
+                    formatContentToHtml(technicalDetailsModal.content),
                   );
                   setTechnicalDetailsModal({
                     isOpen: false,
@@ -2856,7 +2940,7 @@ const OwnStorePage = () => {
           selectedProducts={selectedProductsDetails}
           onRemove={(id) => {
             setSelectedProducts(
-              selectedProducts.filter((productId) => productId !== id)
+              selectedProducts.filter((productId) => productId !== id),
             );
           }}
           onClearAll={() => setSelectedProducts([])}
@@ -2916,7 +3000,7 @@ const OwnStorePage = () => {
                 <Button
                   onClick={() => {
                     const product = products.find(
-                      (p) => p.id === customParameterModal.productId
+                      (p) => p.id === customParameterModal.productId,
                     );
                     if (!product) return;
 
@@ -2931,7 +3015,7 @@ const OwnStorePage = () => {
                     handleCellEdit(
                       customParameterModal.productId!,
                       "customParameters",
-                      newParams
+                      newParams,
                     );
                     setCustomParameterModal({
                       isOpen: false,
@@ -2984,7 +3068,7 @@ const OwnStorePage = () => {
                     m.name.toLowerCase() !== "silnik" &&
                     m.name
                       .toLowerCase()
-                      .includes(manufacturerSearchTerm.toLowerCase())
+                      .includes(manufacturerSearchTerm.toLowerCase()),
                 )
                 .map((manufacturer) => (
                   <div
@@ -2994,7 +3078,7 @@ const OwnStorePage = () => {
                       handleCellEdit(
                         manufacturerModal.productId!,
                         "manufacturer",
-                        manufacturer.name
+                        manufacturer.name,
                       );
                       setManufacturerModal({
                         isOpen: false,
@@ -3012,7 +3096,7 @@ const OwnStorePage = () => {
             {manufacturerSearchTerm &&
               !manufacturers.find(
                 (m) =>
-                  m.name.toLowerCase() === manufacturerSearchTerm.toLowerCase()
+                  m.name.toLowerCase() === manufacturerSearchTerm.toLowerCase(),
               ) && (
                 <Button
                   className="w-full"
@@ -3031,7 +3115,7 @@ const OwnStorePage = () => {
                       handleCellEdit(
                         manufacturerModal.productId!,
                         "manufacturer",
-                        name
+                        name,
                       );
                       setManufacturerModal({
                         isOpen: false,
@@ -3044,7 +3128,7 @@ const OwnStorePage = () => {
                         useManufacturerStore.getState();
                       await fetchManufacturers();
                       setManufacturers(
-                        useManufacturerStore.getState().manufacturers
+                        useManufacturerStore.getState().manufacturers,
                       );
 
                       toast({
@@ -3119,7 +3203,7 @@ const OwnStorePage = () => {
                 <Button
                   onClick={() => {
                     const input = document.getElementById(
-                      "allegro-offer-id-input"
+                      "allegro-offer-id-input",
                     ) as HTMLInputElement;
                     if (input?.value.trim()) {
                       const allegroId = input.value.trim();
@@ -3165,7 +3249,7 @@ const OwnStorePage = () => {
                     .filter((offer) =>
                       offer.name
                         .toLowerCase()
-                        .includes(linkingModal.searchTerm.toLowerCase())
+                        .includes(linkingModal.searchTerm.toLowerCase()),
                     )
                     .map((offer) => (
                       <div

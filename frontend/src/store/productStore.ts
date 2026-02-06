@@ -54,7 +54,7 @@ interface ProductStore {
   totalProducts: number;
   updateProductName: (productId: string, newName: string) => Promise<any>;
   fetchProducts: (
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
   ) => Promise<APIResponse | undefined>;
   fetchProductsAdmin: (params?: {
     page?: number;
@@ -70,7 +70,7 @@ interface ProductStore {
   updateMarketplace: (
     id: string,
     marketplace: string,
-    data: unknown
+    data: unknown,
   ) => Promise<void>;
   setPage: (page: number) => void;
   setItemsPerPage: (count: number) => void;
@@ -78,17 +78,17 @@ interface ProductStore {
   updateManyCategories: (
     productIds: string[],
     categoryId: string,
-    updateDataArray: any[]
+    updateDataArray: any[],
   ) => Promise<void>;
   updateProductStock: (
     productId: string,
     newStock: number,
-    syncWithAllegro?: boolean
+    syncWithAllegro?: boolean,
   ) => Promise<any>;
   updateProductStatus: (
     productId: string,
     marketplace: "allegro" | "ownStore" | "all",
-    active: boolean
+    active: boolean,
   ) => Promise<any>;
   currentSearch: string;
   fetchAllegroProducts: (params: AllegroProductsParams) => Promise<void>;
@@ -115,7 +115,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     // Znajdź produkt w lokalnym stanie
     const products = get().products;
     const productToUpdate = products.find(
-      (p) => p.id === productId || p._id === productId
+      (p) => p.id === productId || p._id === productId,
     );
 
     if (!productToUpdate) {
@@ -136,18 +136,18 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         productToUpdate.matched_store_product.store_product_id;
       console.log(
         "Szukam ID Allegro w powiązanym produkcie:",
-        relatedProductId
+        relatedProductId,
       );
 
       // Najpierw szukamy w lokalnym stanie
       let relatedProduct = products.find(
-        (p) => p.id === relatedProductId || p._id === relatedProductId
+        (p) => p.id === relatedProductId || p._id === relatedProductId,
       );
 
       // Jeśli nie znaleziono w lokalnym stanie, próbujemy pobrać z API
       if (!relatedProduct) {
         console.log(
-          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API"
+          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API",
         );
         try {
           const response = await api.get(`/products/${relatedProductId}`);
@@ -158,7 +158,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         } catch (err) {
           console.error(
             "Nie udało się pobrać powiązanego produktu z API:",
-            err
+            err,
           );
         }
       }
@@ -168,7 +168,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         foundInRelated = true;
         console.log(
           "Znaleziono ID Allegro w powiązanym produkcie:",
-          allegroProductId
+          allegroProductId,
         );
       } else {
         console.log("Powiązany produkt nie ma ID Allegro:", relatedProduct);
@@ -202,7 +202,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           `/allegro/offers/${allegroProductId}/name`,
           {
             newName,
-          }
+          },
         );
 
         console.log("✅ Odpowiedź API Allegro:", response.data);
@@ -248,7 +248,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       }
     } else {
       console.error(
-        "❌ Nie można synchronizować z Allegro - brak ID oferty Allegro"
+        "❌ Nie można synchronizować z Allegro - brak ID oferty Allegro",
       );
     }
 
@@ -287,7 +287,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     } catch (error) {
       console.error(
         "❌ Błąd aktualizacji nazwy produktu w bazie danych:",
-        error
+        error,
       );
       throw error;
     }
@@ -298,7 +298,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   updateProductStatus: async (
     productId: string,
     marketplace: "allegro" | "ownStore" | "all",
-    active: boolean
+    active: boolean,
   ) => {
     console.log("=== updateProductStatus ===");
     console.log("productId:", productId);
@@ -308,7 +308,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     // Znajdź produkt w lokalnym stanie
     const products = get().products;
     const productToUpdate = products.find(
-      (p) => p.id === productId || p._id === productId
+      (p) => p.id === productId || p._id === productId,
     );
 
     if (!productToUpdate) {
@@ -330,18 +330,18 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         productToUpdate.matched_store_product.store_product_id;
       console.log(
         "Szukam ID Allegro w powiązanym produkcie:",
-        relatedProductId
+        relatedProductId,
       );
 
       // Najpierw szukamy w lokalnym stanie
       let relatedProduct = products.find(
-        (p) => p.id === relatedProductId || p._id === relatedProductId
+        (p) => p.id === relatedProductId || p._id === relatedProductId,
       );
 
       // Jeśli nie znaleziono w lokalnym stanie, próbujemy pobrać z API
       if (!relatedProduct) {
         console.log(
-          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API"
+          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API",
         );
         try {
           const response = await api.get(`/products/${relatedProductId}`);
@@ -352,7 +352,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         } catch (err) {
           console.error(
             "Nie udało się pobrać powiązanego produktu z API:",
-            err
+            err,
           );
         }
       }
@@ -362,7 +362,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         foundInRelated = true;
         console.log(
           "Znaleziono ID Allegro w powiązanym produkcie:",
-          allegroProductId
+          allegroProductId,
         );
       } else {
         console.log("Powiązany produkt nie ma ID Allegro:", relatedProduct);
@@ -415,7 +415,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           `/allegroProducts/${allegroProductId}/status`,
           {
             active,
-          }
+          },
         );
 
         console.log("✅ Odpowiedź API Allegro:", response.data);
@@ -423,7 +423,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         // Aktualizuj produkt w bazie danych
         await productAPI.update(productId, {
           marketplaces: updatedProducts.find(
-            (p) => p.id === productId || p._id === productId
+            (p) => p.id === productId || p._id === productId,
           )?.marketplaces,
         });
 
@@ -431,7 +431,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       } catch (error) {
         console.error(
           "❌ Błąd aktualizacji statusu produktu na Allegro:",
-          error
+          error,
         );
         set({ error: "Błąd podczas aktualizacji statusu produktu na Allegro" });
         throw error;
@@ -443,7 +443,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       !allegroProductId
     ) {
       console.error(
-        "❌ Nie można synchronizować z Allegro - brak ID oferty Allegro"
+        "❌ Nie można synchronizować z Allegro - brak ID oferty Allegro",
       );
     }
 
@@ -455,13 +455,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       try {
         await productAPI.update(productId, {
           marketplaces: updatedProducts.find(
-            (p) => p.id === productId || p._id === productId
+            (p) => p.id === productId || p._id === productId,
           )?.marketplaces,
         });
       } catch (error) {
         console.error(
           "❌ Błąd aktualizacji statusu produktu w bazie danych:",
-          error
+          error,
         );
         throw error;
       }
@@ -486,7 +486,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         queryParams.append("sortDirection", params.sortDirection);
 
       const response = await api.get(
-        `/allegroProducts/admin/search?${queryParams}`
+        `/allegroProducts/admin/search?${queryParams}`,
       );
 
       if (response.data.success) {
@@ -596,7 +596,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       // Automatycznie twórz powiązanie z samym sobą jeśli nie istnieje
       if (response.data.id && !response.data.matched_store_product) {
         console.log(
-          "🔄 Automatyczne tworzenie powiązania produktu z samym sobą..."
+          "🔄 Automatyczne tworzenie powiązania produktu z samym sobą...",
         );
 
         try {
@@ -617,7 +617,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         } catch (error) {
           console.error(
             "❌ Błąd podczas dodawania automatycznego powiązania:",
-            error
+            error,
           );
           set({ products: [...products, response.data] });
           return response.data;
@@ -648,7 +648,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
       // Aktualizuj produkt w store używając obu ID
       const products = get().products.map((p) =>
-        p.id === id || p._id === id ? { ...response.data, id, _id: id } : p
+        p.id === id || p._id === id ? { ...response.data, id, _id: id } : p,
       );
       set({ products });
       return response.data;
@@ -680,10 +680,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       const response = await productAPI.updateMarketplace(
         id,
         marketplace,
-        data
+        data,
       );
       const products = get().products.map((p) =>
-        p._id === id ? response.data : p
+        p._id === id ? response.data : p,
       );
       set({ products });
     } catch (error) {
@@ -696,7 +696,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   updateProductStock: async (
     productId: string,
     newStock: number,
-    syncWithAllegro = false
+    syncWithAllegro = false,
   ) => {
     console.log("=== updateProductStock ===");
     console.log("productId:", productId);
@@ -706,7 +706,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     // Najpierw aktualizujemy lokalnie
     const products = get().products;
     const productToUpdate = products.find(
-      (p) => p.id === productId || p._id === productId
+      (p) => p.id === productId || p._id === productId,
     );
 
     console.log(
@@ -718,7 +718,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             allegroProductId: productToUpdate.marketplaces?.allegro?.productId,
             matched_store_product: productToUpdate.matched_store_product,
           }
-        : "nie znaleziono"
+        : "nie znaleziono",
     );
 
     // Sprawdzamy powiązanie z Allegro bezpośrednio
@@ -734,18 +734,18 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         productToUpdate.matched_store_product.store_product_id;
       console.log(
         "Szukam ID Allegro w powiązanym produkcie:",
-        relatedProductId
+        relatedProductId,
       );
 
       // Najpierw szukamy w lokalnym stanie
       let relatedProduct = products.find(
-        (p) => p.id === relatedProductId || p._id === relatedProductId
+        (p) => p.id === relatedProductId || p._id === relatedProductId,
       );
 
       // Jeśli nie znaleziono w lokalnym stanie, próbujemy pobrać z API
       if (!relatedProduct) {
         console.log(
-          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API"
+          "Nie znaleziono powiązanego produktu w lokalnym stanie, próbuję pobrać z API",
         );
         try {
           const response = await api.get(`/products/${relatedProductId}`);
@@ -756,7 +756,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         } catch (err) {
           console.error(
             "Nie udało się pobrać powiązanego produktu z API:",
-            err
+            err,
           );
         }
       }
@@ -766,7 +766,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         foundInRelated = true;
         console.log(
           "Znaleziono ID Allegro w powiązanym produkcie:",
-          allegroProductId
+          allegroProductId,
         );
       } else {
         console.log("Powiązany produkt nie ma ID Allegro:", relatedProduct);
@@ -825,7 +825,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           `/allegro/offers/${allegroProductId}/stock`,
           {
             newStock,
-          }
+          },
         );
 
         console.log("✅ Odpowiedź API Allegro:", response.data);
@@ -843,7 +843,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
       // Znajdź produkt do aktualizacji
       const productToUpdate = updatedProducts.find(
-        (p) => p.id === productId || p._id === productId
+        (p) => p.id === productId || p._id === productId,
       );
 
       if (!productToUpdate) {
@@ -870,13 +870,13 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   updateManyCategories: async (
     productIds: string[],
     categoryId: string,
-    updateDataArray: any[]
+    updateDataArray: any[],
   ) => {
     set({ loading: true, error: null });
     try {
       const categoryStore = useCategoryStore.getState();
       const category = categoryStore.categories.find(
-        (c) => c.id === categoryId
+        (c) => c.id === categoryId,
       );
 
       if (!category) throw new Error("Kategoria nie znaleziona");
@@ -888,7 +888,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           // Upewniamy się, że wszystkie wymagane pola są obecne
           if (!updateData.weight) {
             const currentProduct = get().products.find(
-              (p) => p._id === id || p.id === id
+              (p) => p._id === id || p.id === id,
             );
             updateData.weight = currentProduct?.weight || 0;
           }
@@ -910,7 +910,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           };
 
           return productAPI.update(id, updateData);
-        })
+        }),
       );
 
       await get().fetchProducts();
@@ -940,7 +940,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       }
 
       const response = await api.get(
-        `/products/admin?${queryParams.toString()}`
+        `/products/admin?${queryParams.toString()}`,
       );
 
       if (response.data.success) {
@@ -985,7 +985,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
       if (!productsResponse.ok) {
         throw new Error(
-          `Błąd pobierania produktów: ${productsResponse.status}`
+          `Błąd pobierania produktów: ${productsResponse.status}`,
         );
       }
 
@@ -1003,7 +1003,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
               ...product.marketplaces,
               allegro: product.marketplaces?.allegro || { active: false },
             },
-          })
+          }),
         );
 
         // Mapujemy produkty z Allegro
@@ -1052,7 +1052,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         const mergedProducts = regularProducts.map((product: IProduct) => {
           const allegroMatch = allegroProducts.find(
             (ap: IProduct) =>
-              ap.name.toLowerCase().trim() === product.name.toLowerCase().trim()
+              ap.name.toLowerCase().trim() ===
+              product.name.toLowerCase().trim(),
           );
 
           if (allegroMatch) {
@@ -1077,8 +1078,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
           (ap: IProduct) =>
             !regularProducts.some(
               (rp: IProduct) =>
-                rp.name.toLowerCase().trim() === ap.name.toLowerCase().trim()
-            )
+                rp.name.toLowerCase().trim() === ap.name.toLowerCase().trim(),
+            ),
         );
 
         set({

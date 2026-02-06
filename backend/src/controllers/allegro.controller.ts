@@ -36,6 +36,69 @@ export class AllegroController {
     res.json({ url: authUrl });
   };
 
+  public unlinkProductFromAllegro: RequestHandler = async (
+    req,
+    res
+  ): Promise<void> => {
+    try {
+      const { productId } = req.params;
+
+      console.log(
+        `🔓 Próba usunięcia powiązania Allegro dla produktu ${productId}`
+      );
+
+      // 1. Znajdź produkt
+      const product = await this.productRepository.findOne({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        res.status(404).json({
+          success: false,
+          error: 'Produkt nie został znaleziony',
+        });
+        return;
+      }
+
+      const allegroProductId = product.marketplaces?.allegro?.productId;
+      const allegroUrl = product.marketplaces?.allegro?.url;
+
+      // 2. Wyczyść dane Allegro z produktu
+      product.marketplaces = {
+        ...product.marketplaces,
+        allegro: undefined,
+      };
+
+      // 3. Wyczyść matched_store_product
+      product.matched_store_product = null;
+
+      await this.productRepository.save(product);
+
+      console.log(
+        `✅ Usunięto powiązanie Allegro dla produktu ${product.name}`
+      );
+      console.log(`   Poprzednie Allegro ID: ${allegroProductId}`);
+      console.log(`   Poprzedni URL: ${allegroUrl}`);
+
+      res.json({
+        success: true,
+        message: 'Powiązanie z Allegro zostało usunięte',
+        data: {
+          productId: product.id,
+          productName: product.name,
+          previousAllegroId: allegroProductId || null,
+          previousAllegroUrl: allegroUrl || null,
+        },
+      });
+    } catch (error) {
+      console.error('❌ Błąd usuwania powiązania:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Błąd podczas usuwania powiązania z Allegro',
+      });
+    }
+  };
+
   public handleCallback: RequestHandler = async (req, res): Promise<void> => {
     // Pobieramy kod TYLKO z query params
     const code = req.query.code as string;

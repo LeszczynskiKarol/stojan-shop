@@ -11,7 +11,7 @@ interface ManufacturerStore {
   createManufacturer: (data: Partial<IManufacturer>) => Promise<IManufacturer>;
   updateManufacturer: (
     id: string,
-    data: Partial<IManufacturer>
+    data: Partial<IManufacturer>,
   ) => Promise<IManufacturer>;
 }
 
@@ -93,7 +93,7 @@ export const useManufacturerStore = create<ManufacturerStore>((set) => ({
       const result = await response.json();
       set((state) => ({
         manufacturers: state.manufacturers.map((m) =>
-          m.id === id ? { ...m, ...result.data } : m
+          m.id === id ? { ...m, ...result.data } : m,
         ),
       }));
 

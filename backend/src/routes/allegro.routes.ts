@@ -28,7 +28,10 @@ router.post('/merge-duplicates', allegroController.mergeDuplicateProducts);
 router.patch('/offers/:offerId/stock', allegroController.updateOfferStock);
 router.post('/offers', allegroController.createOffer);
 router.post('/link-product/:productId', allegroController.linkProductToAllegro);
-
+router.delete(
+  '/unlink-product/:productId',
+  allegroController.unlinkProductFromAllegro
+);
 router.post('/products/:productId/allegro', allegroController.createOffer);
 router.get('/auth', allegroController.getAuthUrl);
 router.get('/auth/callback', allegroController.handleCallback);

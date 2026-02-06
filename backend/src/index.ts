@@ -158,6 +158,7 @@ mainRouter.use('/orders', orderRoutes);
 mainRouter.use('/users', userRoutes);
 mainRouter.use('/shipping', shippingRoutes);
 mainRouter.use('/allegro', allegroRoutes);
+mainRouter.use('/admin/allegro', allegroRoutes);
 mainRouter.use('/allegroProducts', allegroProductsRoutes);
 mainRouter.use('/olx', olxRoutes);
 mainRouter.use('/admin/categories', categoryRoutes);

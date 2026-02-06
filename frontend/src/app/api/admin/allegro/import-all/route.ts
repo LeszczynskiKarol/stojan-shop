@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const response = await fetch(
-      `${process.env.API_URL}/api/allegro/admin/allegro/import-all`,
+      `${process.env.API_URL}/api/admin/allegro/import-all`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
           message: `Błąd importu: ${response.status}`,
           error: errorText,
         },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         message: "Błąd podczas importu produktów z Allegro",
         error: error instanceof Error ? error.message : "Nieznany błąd",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

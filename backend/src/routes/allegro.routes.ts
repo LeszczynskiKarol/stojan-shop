@@ -33,8 +33,6 @@ router.post('/products/:productId/allegro', allegroController.createOffer);
 router.get('/auth', allegroController.getAuthUrl);
 router.get('/auth/callback', allegroController.handleCallback);
 router.post('/auth/callback', allegroController.handleCallback);
-router.get('/admin/allegro/search', allegroController.searchProducts);
-router.post('/admin/allegro/import-all', allegroController.importAllOffers);
 
 router.get('/auth/status', allegroController.getAuthStatus);
 router.post(
@@ -46,7 +44,8 @@ router.get('/offers', allegroController.getAllOffers);
 router.get('/offers/:id', allegroController.getOfferById);
 router.post('/offers/:offerId/import', allegroController.importToOwnStore);
 router.patch('/offers/:offerId/name', allegroController.updateOfferName);
-router.get('/admin/allegro/offers', allegroController.getAllOffers);
+router.get('/search', allegroController.searchProducts);
+router.post('/import-all', allegroController.importAllOffers);
 router.patch('/allegro/offers/:id/price', allegroController.updateOfferPrice);
 router.post('/test-sync', async (req, res) => {
   try {

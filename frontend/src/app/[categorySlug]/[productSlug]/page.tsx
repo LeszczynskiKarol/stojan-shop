@@ -133,7 +133,7 @@ export default async function ProductPage({
             paymentMethod: "prepaid",
           }),
           cache: "no-store",
-        }
+        },
       );
 
       if (shippingResponse.ok) {
@@ -145,7 +145,7 @@ export default async function ProductPage({
     } catch (shippingError) {
       console.error(
         "Błąd obliczania kosztów wysyłki dla Schema:",
-        shippingError
+        shippingError,
       );
       // Używamy domyślnego kosztu
     }
@@ -166,10 +166,10 @@ export default async function ProductPage({
               data.data.condition === "nowy"
                 ? "new"
                 : data.data.condition === "uzywany"
-                ? "used"
-                : "refurbished",
+                  ? "used"
+                  : "refurbished",
             inStock: (data.data.stock || 0) > 0,
-            url: `https://silniki-elektryczne.com.pl/${resolvedParams.categorySlug}/${resolvedParams.productSlug}`,
+            url: `https://www.silniki-elektryczne.com.pl/${resolvedParams.categorySlug}/${resolvedParams.productSlug}`,
             categorySlug: resolvedParams.categorySlug,
             productSlug: resolvedParams.productSlug,
             weight: data.data.weight || 0,

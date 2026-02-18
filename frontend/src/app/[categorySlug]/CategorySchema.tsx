@@ -27,7 +27,7 @@ export function CategorySchema({
         "@type": "Product",
         name: product.name,
         image: product.image,
-        url: `https://silniki-elektryczne.com.pl/${product.categorySlug}/${product.productSlug}`,
+        url: `https://www.silniki-elektryczne.com.pl/${product.categorySlug}/${product.productSlug}`,
         offers: {
           "@type": "Offer",
           price: product.price,

@@ -147,6 +147,12 @@ const STATIC_PATHS = [
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // Redirect /QR -> /qr (naklejki QR code mają uppercase URL)
+  if (path === "/QR") {
+    return NextResponse.redirect(new URL("/qr", request.url), 301);
+  }
+
   const response = NextResponse.next();
 
   // Dodajemy nagłówki bezpieczeństwa
@@ -155,12 +161,12 @@ export function middleware(request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
+    "camera=(), microphone=(), geolocation=()",
   );
 
   // Sprawdź czy ścieżka jest statyczna
   const isStaticPath = STATIC_PATHS.some(
-    (staticPath) => path === staticPath || path.startsWith(`${staticPath}/`)
+    (staticPath) => path === staticPath || path.startsWith(`${staticPath}/`),
   );
 
   if (isStaticPath) {
@@ -194,7 +200,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.svg|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|.*\\.ico|.*\\.xml|.*\\.webmanifest).)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png|.*\\.svg|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.webp|.*\\.ico|.*\\.xml|.*\\.webmanifest).*)",
     "/legal/:path",
+    "/QR",
   ],
 };

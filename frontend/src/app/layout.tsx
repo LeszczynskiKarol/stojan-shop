@@ -12,7 +12,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://stojan-shop.pl"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.silniki-elektryczne.pl",
   ),
   title: {
     default: "Silniki elektryczne - sklep internetowy | Stojan Shop",

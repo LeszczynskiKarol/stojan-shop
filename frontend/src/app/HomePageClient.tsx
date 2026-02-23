@@ -61,24 +61,31 @@ const SHOP_DESCRIPTION = `<h2><strong>Silniki elektryczne &ndash; szeroka oferta
 <h3><strong>Dostawa</strong></h3>
 <p>Kładziemy nacisk na zapewnienie profesjonalnej obsługi, dlatego przykładamy dużą wagę do szybkości, terminowości, jakości i bezpieczeństwa transportu sprzedawanych napęd&oacute;w. Wsp&oacute;łpracujemy z renomowanymi firmami kurierskimi i dbamy o wydajność działalności, dlatego większość zam&oacute;wień realizujemy w ciągu zaledwie 24 godzin. Niekt&oacute;re z dostępnych w ofercie silnik&oacute;w elektrycznych dostarczamy w ramach darmowej dostawy.</p>`;
 
-export default function HomePageClient() {
+interface HomePageClientProps {
+  initialProducts?: any[];
+  initialCategories?: any[];
+}
+
+export default function HomePageClient({
+  initialProducts = [],
+  initialCategories = [],
+}: HomePageClientProps) {
   const { trackEvent } = useAnalytics();
   const { token, user } = useAuthStore();
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(initialProducts);
   const pendingExit = useRef(false);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(initialCategories);
 
-  // POPRAWKA 1: useEffect tylko raz przy montowaniu
+  // Pobieraj z API tylko jeśli nie dostaliśmy danych z serwera
   useEffect(() => {
-    // Pobieranie produktów
+    if (initialProducts.length > 0 && initialCategories.length > 0) return;
+
     const fetchProducts = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/products?limit=8&inStock=true`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/products?limit=8&inStock=true`,
         );
-        if (!res.ok) {
-          throw new Error("Failed to fetch products");
-        }
+        if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
         setProducts(data.data.products);
       } catch (error) {
@@ -86,15 +93,12 @@ export default function HomePageClient() {
       }
     };
 
-    // Pobieranie kategorii
     const fetchCategories = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/categories`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/categories`,
         );
-        if (!res.ok) {
-          throw new Error("Failed to fetch categories");
-        }
+        if (!res.ok) throw new Error("Failed to fetch categories");
         const data = await res.json();
         setCategories(data.data);
       } catch (error) {
@@ -102,9 +106,8 @@ export default function HomePageClient() {
       }
     };
 
-    // Wykonaj tylko raz przy montowaniu komponentu
     Promise.all([fetchProducts(), fetchCategories()]);
-  }, []); // PUSTE DEPENDENCY ARRAY - wykonaj tylko raz!
+  }, []);
 
   // POPRAWKA 2: Osobny useEffect dla trackingu
   useEffect(() => {

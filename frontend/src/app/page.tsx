@@ -12,6 +12,31 @@ export const metadata: Metadata = {
 };
 
 // USUŃ async i pobieranie danych
-export default function HomePage() {
-  return <HomePageClient />;
+export default async function HomePage() {
+  let products = [];
+  let categories = [];
+
+  try {
+    const [productsRes, categoriesRes] = await Promise.all([
+      fetch(`${process.env.API_URL}/api/products?limit=8&inStock=true`, {
+        next: { revalidate: 3600 },
+      }),
+      fetch(`${process.env.API_URL}/api/categories`, {
+        next: { revalidate: 3600 },
+      }),
+    ]);
+
+    if (productsRes.ok) {
+      products = (await productsRes.json()).data.products;
+    }
+    if (categoriesRes.ok) {
+      categories = (await categoriesRes.json()).data;
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+
+  return (
+    <HomePageClient initialProducts={products} initialCategories={categories} />
+  );
 }

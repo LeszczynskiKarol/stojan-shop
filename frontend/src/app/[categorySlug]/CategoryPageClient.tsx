@@ -10,13 +10,16 @@ import { ActiveFilters, Filters, useShopStore } from "@/store/shopStore";
 import { ICategory } from "@/types/category.types";
 import { IProduct } from "@/types/product.types";
 import { Loader2 } from "lucide-react";
-import Head from "next/head";
+
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CategorySchema } from "./CategorySchema";
 
 interface CategoryPageClientProps {
   categoryMapper: Record<string, string>;
+  initialCategory?: ICategory | null;
+  initialProducts?: IProduct[];
+  initialTotal?: number;
 }
 
 const PRODUCT_TYPES = [
@@ -498,6 +501,9 @@ const POWER_MAPPING: Record<string, PowerPageConfig> = {
 
 export default function CategoryPageClient({
   categoryMapper,
+  initialCategory = null,
+  initialProducts = [],
+  initialTotal = 0,
 }: CategoryPageClientProps) {
   const { categorySlug } = useParams();
   const resolvedSlug = Array.isArray(categorySlug)
@@ -511,9 +517,12 @@ export default function CategoryPageClient({
   const powerValue = powerConfig?.power;
 
   // Stany dla strony mocy
-  const [powerProducts, setPowerProducts] = useState<IProduct[]>([]);
-  const [powerLoading, setPowerLoading] = useState(false);
-  const [powerTotal, setPowerTotal] = useState(0);
+  const [powerProducts, setPowerProducts] = useState<IProduct[]>(
+    isPowerPage ? initialProducts : [],
+  );
+  const [powerLoading, setPowerLoading] = useState(false); // false, bo mamy dane
+  const [powerTotal, setPowerTotal] = useState(isPowerPage ? initialTotal : 0);
+
   const [powerFilters, setPowerFilters] = useState({
     manufacturer: "",
     condition: "",
@@ -526,8 +535,10 @@ export default function CategoryPageClient({
   const router = useRouter();
   const page = parseInt(searchParams.get("page") || "1");
   const currentPage = page - 1;
-  const [category, setCategory] = useState<ICategory | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [category, setCategory] = useState<ICategory | null>(initialCategory);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    !initialCategory && !isPowerPage,
+  );
   const {
     products,
     loading,
@@ -547,11 +558,14 @@ export default function CategoryPageClient({
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const getManufacturersWithCount = (products: IProduct[]) => {
-    const manufacturerCounts = products.reduce((acc, product) => {
-      const manufacturer = product.manufacturer;
-      acc[manufacturer] = (acc[manufacturer] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const manufacturerCounts = products.reduce(
+      (acc, product) => {
+        const manufacturer = product.manufacturer;
+        acc[manufacturer] = (acc[manufacturer] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return Object.keys(manufacturerCounts)
       .sort()
@@ -649,7 +663,7 @@ export default function CategoryPageClient({
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/products/search?${params}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products/search?${params}`,
       );
 
       const data = await response.json();
@@ -666,9 +680,10 @@ export default function CategoryPageClient({
   };
 
   useEffect(() => {
-    if (isPowerPage) {
-      fetchPowerProducts();
-    }
+    if (!isPowerPage) return;
+    // Skip jeśli to pierwszy render i mamy dane z SSR
+    if (initialProducts.length > 0 && powerProducts === initialProducts) return;
+    fetchPowerProducts();
   }, [isPowerPage, searchParams, powerFilters]);
 
   // JEŚLI TO STRONA MOCY - ZWRÓĆ INNY KOMPONENT
@@ -686,7 +701,7 @@ export default function CategoryPageClient({
     useEffect(() => {
       if (powerProducts.length > 0) {
         const uniqueManufacturers = Array.from(
-          new Set(powerProducts.map((p) => p.manufacturer).filter(Boolean))
+          new Set(powerProducts.map((p) => p.manufacturer).filter(Boolean)),
         ).sort();
         setManufacturers(uniqueManufacturers);
       }
@@ -729,8 +744,8 @@ export default function CategoryPageClient({
               {powerTotal === 1
                 ? "produkt"
                 : powerTotal < 5
-                ? "produkty"
-                : "produktów"}{" "}
+                  ? "produkty"
+                  : "produktów"}{" "}
               o mocy {formatPower(powerValue)} kW
               {powerConfig?.rpmLabel &&
                 ` z prędkością około ${powerConfig.rpmLabel} obr/min`}
@@ -800,7 +815,7 @@ export default function CategoryPageClient({
                           {manufacturer} (
                           {
                             powerProducts.filter(
-                              (p) => p.manufacturer === manufacturer
+                              (p) => p.manufacturer === manufacturer,
                             ).length
                           }
                           )
@@ -900,7 +915,7 @@ export default function CategoryPageClient({
                         value={searchParams.get("sort") || "relevance"}
                         onChange={(e) => {
                           const params = new URLSearchParams(
-                            searchParams.toString()
+                            searchParams.toString(),
                           );
                           params.set("sort", e.target.value);
                           router.push(`/${resolvedSlug}?${params.toString()}`);
@@ -1060,7 +1075,7 @@ export default function CategoryPageClient({
       const params = new URLSearchParams(searchParams.toString());
       params.delete("page");
       router.replace(
-        `/${categorySlug}${params.toString() ? `?${params.toString()}` : ""}`
+        `/${categorySlug}${params.toString() ? `?${params.toString()}` : ""}`,
       );
       return;
     }
@@ -1074,7 +1089,7 @@ export default function CategoryPageClient({
   const handleFilter = async (
     filterType: string,
     value: any,
-    additionalParams?: any
+    additionalParams?: any,
   ) => {
     if (!category?.id) return;
 
@@ -1139,7 +1154,9 @@ export default function CategoryPageClient({
 
   const getUniqueManufacturers = (products: IProduct[]): string[] => {
     return Array.from(
-      new Set(products.filter((p) => p.manufacturer).map((p) => p.manufacturer))
+      new Set(
+        products.filter((p) => p.manufacturer).map((p) => p.manufacturer),
+      ),
     ).sort();
   };
 
@@ -1173,26 +1190,25 @@ export default function CategoryPageClient({
     const fetchCategory = async () => {
       setIsLoading(true);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const response = await fetch(`${baseUrl}/api/${resolvedCategorySlug}`);
-        const data = await response.json();
+        let categoryData = initialCategory;
 
-        // Najpierw ustawiamy kategorię
-        setCategory(data.data);
+        // Jeśli nie mamy danych z SSR, pobierz z API
+        if (!categoryData) {
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+          const response = await fetch(
+            `${baseUrl}/api/${resolvedCategorySlug}`,
+          );
+          const data = await response.json();
+          categoryData = data.data;
+        }
 
-        trackEvent("category_page_view", {
-          location: getPageLocation(),
-          category: data.data.name,
-          categoryId: data.data.id,
-          url: window.location.pathname,
-          timestamp: new Date().toISOString(),
-        });
+        setCategory(categoryData);
 
-        if (!data.data?.id) return;
+        if (!categoryData?.id) return;
 
         await useShopStore
           .getState()
-          .initializeFiltersForCategory(data.data.id);
+          .initializeFiltersForCategory(categoryData.id);
 
         const powerMin = searchParams.get("powerMin");
         const powerMax = searchParams.get("powerMax");
@@ -1216,12 +1232,12 @@ export default function CategoryPageClient({
           const activeFilters = useShopStore.getState().activeFilters;
           const updatedFilters: ActiveFilters = {
             ...activeFilters,
-            categoryId: data.data.id,
+            categoryId: categoryData.id,
             power:
               powerMin && powerMax
                 ? ([parseFloat(powerMin), parseFloat(powerMax)] as [
                     number,
-                    number
+                    number,
                   ])
                 : activeFilters.power,
             rpm:
@@ -1232,7 +1248,7 @@ export default function CategoryPageClient({
               shaftMin && shaftMax
                 ? ([parseFloat(shaftMin), parseFloat(shaftMax)] as [
                     number,
-                    number
+                    number,
                   ])
                 : activeFilters.shaftDiameter,
             condition: condition || activeFilters.condition,
@@ -1242,13 +1258,11 @@ export default function CategoryPageClient({
             startType: activeFilters.startType,
             inStock: activeFilters.inStock,
           };
-
           useShopStore.setState({ activeFilters: updatedFilters });
         }
 
-        // Zawsze pobieramy produkty
         const fetchFilters: Filters = {
-          categoryId: data.data.id,
+          categoryId: categoryData.id,
           sort: sortBy,
           page: currentPage,
           limit: itemsPerPage,
@@ -1300,32 +1314,6 @@ export default function CategoryPageClient({
         />
       )}
 
-      <Head>
-        {/* Blokowanie indeksowania stron z filtrami */}
-        {hasActiveFilters() && <meta name="robots" content="noindex, follow" />}
-
-        {/* Dla stron z paginacją powyżej 1 też noindex */}
-        {currentPage > 0 && <meta name="robots" content="noindex, follow" />}
-
-        {/* Canonical zawsze wskazuje na główną stronę kategorii */}
-        <link
-          rel="canonical"
-          href={`${process.env.NEXT_PUBLIC_SITE_URL}/${categorySlug}`}
-        />
-
-        {/* Linki do poprzedniej i następnej strony dla SEO */}
-        {currentPage > 1 && (
-          <link
-            rel="prev"
-            href={`/${categorySlug}${
-              currentPage > 2 ? `?page=${currentPage}` : ""
-            }`}
-          />
-        )}
-        {products.length >= itemsPerPage && (
-          <link rel="next" href={`/${categorySlug}?page=${currentPage + 2}`} />
-        )}
-      </Head>
       <div className="container mx-auto px-4 mt-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filtrowanie - lewa kolumna */}
@@ -1468,8 +1456,8 @@ export default function CategoryPageClient({
                       {activeFilters.condition === "nowy"
                         ? "Nowy"
                         : activeFilters.condition === "uzywany"
-                        ? "Używany"
-                        : "Nieużywany"}
+                          ? "Używany"
+                          : "Nieużywany"}
                       <button
                         onClick={() => {
                           handleFilter("condition", "");
@@ -1564,11 +1552,11 @@ export default function CategoryPageClient({
                       <span className="inline-block bg-gray-100 px-2 py-1 rounded">
                         Średnica wału:{" "}
                         {formatActiveFilterValue(
-                          activeFilters.shaftDiameter[0]
+                          activeFilters.shaftDiameter[0],
                         )}{" "}
                         -{" "}
                         {formatActiveFilterValue(
-                          activeFilters.shaftDiameter[1]
+                          activeFilters.shaftDiameter[1],
                         )}{" "}
                         mm
                         <button

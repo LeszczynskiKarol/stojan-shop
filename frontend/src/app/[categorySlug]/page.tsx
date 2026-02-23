@@ -472,22 +472,39 @@ const POWER_MAPPING: Record<string, PowerPageConfig> = {
 
 type PageProps = {
   params: Promise<{ categorySlug: string }>;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 };
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: PageProps): Promise<Metadata> {
   const { categorySlug } = await params;
+  const search = await searchParams;
 
-  // Sprawdź czy to favicon
+  // Favicon guard
   if (categorySlug === "favicon.ico") {
-    return {
-      title: "Silniki elektryczne - sklep internetowy Stojan",
-      description: "Sklep z silnikami elektrycznymi",
-    };
+    return { title: "Silniki elektryczne - sklep internetowy Stojan" };
   }
 
-  // SPRAWDŹ CZY TO STRONA MOCY
+  // Bazowy canonical (bez filtrów i paginacji)
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "https://www.silniki-elektryczne.com.pl";
+  const canonical = `${siteUrl}/${categorySlug}`;
+
+  // noindex dla stron z filtrami lub paginacją > 1
+  const hasFilters = !!(
+    search.powerMin ||
+    search.rpmMin ||
+    search.shaftMin ||
+    search.condition ||
+    search.manufacturer
+  );
+  const page = parseInt(search.page || "1");
+  const shouldNoIndex = hasFilters || page > 1;
+
+  // STRONA MOCY
   const powerConfig = POWER_MAPPING[categorySlug];
   if (powerConfig) {
     const formattedPower = powerConfig.power.toString().replace(".", ",");
@@ -499,44 +516,31 @@ export async function generateMetadata({
       : "";
 
     return {
-      title: `Silnik elektryczny ${formattedPower} kW${rpmSuffix} - oferta, ceny | sklep internetowy Stojan`,
+      title: `Silnik elektryczny ${formattedPower} kW${rpmSuffix} - oferta, ceny | Stojan`,
       description: `Silniki elektryczne o mocy ${formattedPower} kW${rpmSuffix}. Szeroki wybór napędów ${formattedPower} kW${rpmKeyword} różnych producentów. Sprawdź dostępność i ceny!`,
-      keywords: `silnik ${formattedPower} kw${rpmKeyword}, silnik elektryczny ${formattedPower} kw${rpmKeyword}, motor ${formattedPower} kw, napęd ${formattedPower} kw`,
+      keywords: `silnik ${formattedPower} kw${rpmKeyword}, silnik elektryczny ${formattedPower} kw${rpmKeyword}, motor ${formattedPower} kw`,
+      alternates: { canonical },
+      robots: shouldNoIndex
+        ? { index: false, follow: true }
+        : { index: true, follow: true },
       openGraph: {
-        title: `Silnik elektryczny ${formattedPower} kW${rpmSuffix} - sklep internetowy Stojan`,
-        description: `Silniki elektryczne o mocy ${formattedPower} kW${rpmSuffix} w ofercie sklep internetowy Stojan`,
+        title: `Silnik elektryczny ${formattedPower} kW${rpmSuffix} - Stojan`,
+        description: `Silniki elektryczne o mocy ${formattedPower} kW${rpmSuffix} w ofercie sklepu Stojan`,
         type: "website",
       },
     };
   }
 
-  // DLA KATEGORII - istniejąca logika
+  // KATEGORIA
   try {
     const resolvedSlug =
       categorySlug === "hamulcem" ? "z-hamulcem" : categorySlug;
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/${resolvedSlug}`;
-
-    const res = await fetch(url, {
-      next: { revalidate: 60 }, // Cache na 1 minutę zamiast no-store
-    });
+    const res = await fetch(
+      `${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL}/api/categories/by-slug/${resolvedSlug}`,
+      { next: { revalidate: 3600 } },
+    );
 
     if (!res.ok) {
-      // Zwróć domyślne metadata dla znanych kategorii
-      const defaultTitles: Record<string, string> = {
-        trojfazowe: "Silniki trójfazowe elektryczne",
-        jednofazowe: "Silniki jednofazowe 230V",
-        "z-hamulcem": "Silniki z hamulcem",
-        motoreduktory: "Motoreduktory",
-        akcesoria: "Akcesoria do silników",
-      };
-
-      if (defaultTitles[resolvedSlug]) {
-        return {
-          title: defaultTitles[resolvedSlug],
-          description: `${defaultTitles[resolvedSlug]} - sprawdź ofertę`,
-        };
-      }
-
       return {
         title: "Kategoria produktów",
         description: "Zobacz nasze produkty",
@@ -548,20 +552,129 @@ export async function generateMetadata({
 
     return {
       title:
-        category.seo?.title || `${category.name} - sklep internetowy Stojan`,
-      description: category.seo?.description || `${category.name} w ofercie`,
+        category.metadata?.title ||
+        `${category.name} - oferta, sprzedaż | Stojan Shop`,
+      description:
+        category.metadata?.description ||
+        `${category.name} - szeroki wybór w atrakcyjnych cenach. Sprawdź ofertę sklepu Stojan!`,
+      keywords:
+        category.metadata?.keywords?.join(", ") ||
+        `${category.name}, silniki elektryczne`,
+      alternates: { canonical },
+      robots: shouldNoIndex
+        ? { index: false, follow: true }
+        : { index: true, follow: true },
+      openGraph: {
+        title: `${category.name} - Stojan Shop`,
+        description:
+          category.metadata?.description ||
+          `${category.name} w ofercie sklepu Stojan`,
+        type: "website",
+      },
     };
-  } catch (error) {
-    return {
-      title: "Produkty - sklep internetowy Stojan",
-      description: "Zobacz naszą ofertę",
-    };
+  } catch {
+    return { title: "Produkty - Stojan Shop" };
   }
 }
 
-export default function CategoryPage() {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const { categorySlug } = await params;
+  const search = await searchParams;
+
   const categoryMapper: Record<string, string> = {
     hamulcem: "z-hamulcem",
   };
-  return <CategoryPageClient categoryMapper={categoryMapper} />;
+  const resolvedSlug = categoryMapper[categorySlug] || categorySlug;
+
+  // Sprawdź czy to power page
+  const powerConfig = POWER_MAPPING[categorySlug];
+
+  let initialCategory = null;
+  let initialProducts: any[] = [];
+  let initialTotal = 0;
+
+  const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL;
+
+  try {
+    if (powerConfig) {
+      // POWER PAGE — fetch produktów po mocy
+      const tolerance = powerConfig.power < 1 ? 0.02 : powerConfig.power * 0.05;
+      const page = parseInt(search.page || "1") - 1;
+      const params = new URLSearchParams({
+        q: `${powerConfig.power} kw`,
+        powerMin: (powerConfig.power - tolerance).toString(),
+        powerMax: (powerConfig.power + tolerance).toString(),
+        page: page.toString(),
+        limit: "20",
+        sort: search.sort || "relevance",
+        ...(powerConfig.rpmMin && { rpmMin: powerConfig.rpmMin.toString() }),
+        ...(powerConfig.rpmMax && { rpmMax: powerConfig.rpmMax.toString() }),
+      });
+
+      const res = await fetch(`${apiUrl}/api/products/search?${params}`, {
+        next: { revalidate: 600 },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          initialProducts = data.data.products || [];
+          initialTotal = data.data.total || 0;
+        }
+      }
+    } else {
+      // KATEGORIA — fetch kategorii i produktów
+      const catRes = await fetch(
+        `${apiUrl}/api/categories/by-slug/${resolvedSlug}`,
+        {
+          next: { revalidate: 3600 },
+        },
+      );
+
+      if (catRes.ok) {
+        const catData = await catRes.json();
+        initialCategory = catData.data;
+
+        if (initialCategory?.id) {
+          const page = parseInt(search.page || "1") - 1;
+          const prodParams = new URLSearchParams({
+            categoryId: initialCategory.id,
+            page: page.toString(),
+            limit: "20",
+            sort: search.sort || "newest",
+            ...(search.powerMin && { powerMin: search.powerMin }),
+            ...(search.powerMax && { powerMax: search.powerMax }),
+            ...(search.rpmMin && { rpmMin: search.rpmMin }),
+            ...(search.rpmMax && { rpmMax: search.rpmMax }),
+            ...(search.condition && { condition: search.condition }),
+            ...(search.manufacturer && { manufacturer: search.manufacturer }),
+          });
+
+          const prodRes = await fetch(`${apiUrl}/api/products?${prodParams}`, {
+            next: { revalidate: 600 },
+          });
+
+          if (prodRes.ok) {
+            const prodData = await prodRes.json();
+            initialProducts = prodData.data?.products || [];
+            initialTotal = prodData.data?.total || 0;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching category data:", error);
+  }
+
+  return (
+    <CategoryPageClient
+      categoryMapper={categoryMapper}
+      initialCategory={initialCategory}
+      initialProducts={initialProducts}
+      initialTotal={initialTotal}
+    />
+  );
 }
